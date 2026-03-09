@@ -161,14 +161,7 @@ export default function LoginScreen({ navigation }: Props) {
               <View style={styles.dividerLine} />
             </View>
 
-            <View style={styles.socialButtons}>
-              <TouchableOpacity style={styles.socialButton}>
-                <Text style={styles.socialIcon}>📱</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
-                <Text style={styles.socialIcon}>📧</Text>
-              </TouchableOpacity>
-            </View>
+            
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>New to ONECINEHUB?</Text>
