@@ -8,7 +8,7 @@ import { checkAuth } from '../api';
 import { useToast } from '../context/ToastContext';
 import type { BookingHistoryItem } from '../types/api';
 import type { RootStackParamList } from '../types/navigation';
-import { COLORS, GRADIENTS, SHADOWS, SIZES } from '../theme';
+import { COLORS, GRADIENTS, SHADOWS, SIZES, FONTS, RADIUS, SPACING } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'History'>;
 
@@ -35,7 +35,7 @@ export default function HistoryScreen(_props: Props) {
     }
   };
 
-  // Refresh history when screen comes into focus (to pick up new bookings)
+  // Refresh history when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       load(true);
@@ -50,7 +50,10 @@ export default function HistoryScreen(_props: Props) {
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <View style={styles.loadingLogo}>
+            <Text style={styles.loadingEmoji}>🎟️</Text>
+          </View>
+          <ActivityIndicator size="large" color={COLORS.primary} style={styles.loadingIndicator} />
           <Text style={styles.loadingText}>Loading your bookings...</Text>
         </View>
       </SafeAreaView>
@@ -60,8 +63,20 @@ export default function HistoryScreen(_props: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Booking History</Text>
-        <Text style={styles.subtitle}>{history.length} booking{history.length !== 1 ? 's' : ''}</Text>
+        <View style={styles.headerRow}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => _props.navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.backText}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>Booking History</Text>
+          <View style={styles.placeholder} />
+        </View>
+        <Text style={styles.subtitle}>
+          {history.length} booking{history.length !== 1 ? 's' : ''}
+        </Text>
       </View>
 
       <FlatList
@@ -85,7 +100,7 @@ export default function HistoryScreen(_props: Props) {
               colors={GRADIENTS.card as any}
               style={styles.emptyIcon}
             >
-              <Text style={styles.emptyEmoji}></Text>
+              <Text style={styles.emptyEmoji}>🎟️</Text>
             </LinearGradient>
             <Text style={styles.emptyTitle}>No bookings yet</Text>
             <Text style={styles.emptyText}>
@@ -100,14 +115,17 @@ export default function HistoryScreen(_props: Props) {
               <Text style={styles.movieTitle} numberOfLines={2}>{item.movie.title}</Text>
               
               <View style={styles.detailRow}>
+                <Text style={styles.detailIcon}>📍</Text>
                 <Text style={styles.detail}>{item.branch}</Text>
               </View>
               
               <View style={styles.detailRow}>
+                <Text style={styles.detailIcon}>📅</Text>
                 <Text style={styles.detail}>{item.date} at {item.time}</Text>
               </View>
               
               <View style={styles.detailRow}>
+                <Text style={styles.detailIcon}>💺</Text>
                 <Text style={styles.detail}>Seats: {item.seats.join(', ')}</Text>
               </View>
               
@@ -122,97 +140,186 @@ export default function HistoryScreen(_props: Props) {
             </View>
           </View>
         )}
+        showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  centered: { justifyContent: 'center', alignItems: 'center' },
-  loadingContainer: { alignItems: 'center' },
-  loadingIcon: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 24, ...SHADOWS.glow },
-  loadingEmoji: { fontSize: 36 },
-  loadingText: { color: COLORS.textMuted, fontSize: 14, marginTop: 12 },
-  header: { padding: 20, paddingTop: 8 },
-  title: { fontSize: 26, fontWeight: '700', color: COLORS.text },
-  subtitle: { color: COLORS.textMuted, fontSize: 14, marginTop: 4 },
-  list: { padding: 20, paddingBottom: 100 },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
+  },
+  centered: { 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  loadingContainer: {
+    alignItems: 'center',
+  },
+  loadingLogo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.xl,
+    ...SHADOWS.glow,
+  },
+  loadingEmoji: {
+    fontSize: 48,
+  },
+  loadingIndicator: {
+    marginBottom: SPACING.md,
+  },
+  loadingText: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md 
+  },
+  header: { 
+    padding: SPACING.lg,
+    paddingTop: SPACING.md,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.sm,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.small,
+  },
+  backText: {
+    color: COLORS.text,
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  title: { 
+    fontSize: FONTS.xxl, 
+    fontWeight: '700', 
+    color: COLORS.text 
+  },
+  placeholder: {
+    width: 40,
+  },
+  subtitle: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md 
+  },
+  list: { 
+    padding: SPACING.lg, 
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.xxxl 
+  },
   card: { 
     flexDirection: 'row', 
     backgroundColor: COLORS.surface, 
-    borderRadius: SIZES.radius, 
-    padding: 14, 
-    marginBottom: 14, 
+    borderRadius: RADIUS.lg, 
+    padding: SPACING.md, 
+    marginBottom: SPACING.md, 
     ...SHADOWS.medium,
   },
   poster: { 
     width: 80, 
     height: 110, 
-    borderRadius: SIZES.radiusSmall, 
+    borderRadius: RADIUS.md, 
     backgroundColor: COLORS.surfaceLighter 
   },
   info: { 
     flex: 1, 
-    marginLeft: 14,
+    marginLeft: SPACING.md,
     justifyContent: 'center',
   },
   movieTitle: { 
-    fontSize: 16, 
+    fontSize: FONTS.lg, 
     fontWeight: '700', 
     color: COLORS.text, 
-    marginBottom: 10,
-    lineHeight: 20,
+    marginBottom: SPACING.sm,
+    lineHeight: 22,
   },
   detailRow: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    marginBottom: 6 
+    marginBottom: SPACING.xs 
   },
   detailIcon: { 
     fontSize: 12, 
-    marginRight: 8 
+    marginRight: SPACING.sm 
   },
   detail: { 
     color: COLORS.textSecondary, 
-    fontSize: 13,
+    fontSize: FONTS.sm,
+    flex: 1,
   },
   txContainer: { 
-    marginTop: 10, 
-    paddingTop: 10, 
+    marginTop: SPACING.sm, 
+    paddingTop: SPACING.sm, 
     borderTopWidth: 1, 
     borderTopColor: COLORS.surfaceLighter,
   },
   txLabel: { 
     color: COLORS.textMuted, 
-    fontSize: 10,
+    fontSize: FONTS.xs,
     marginBottom: 2,
   },
   tx: { 
     color: COLORS.textMuted, 
-    fontSize: 11,
+    fontSize: FONTS.sm,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   statusBadge: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    top: SPACING.sm,
+    right: SPACING.sm,
+    width: 28,
+    height: 28,
+    borderRadius: RADIUS.full,
     backgroundColor: COLORS.success,
     justifyContent: 'center',
     alignItems: 'center',
+    ...SHADOWS.small,
   },
   statusText: {
     color: COLORS.text,
-    fontSize: 12,
+    fontSize: FONTS.sm,
     fontWeight: '700',
   },
-  empty: { flex: 1, padding: 40, alignItems: 'center' },
-  emptyIcon: { width: 100, height: 100, borderRadius: 50, justifyContent: 'center', alignItems: 'center', marginBottom: 20, ...SHADOWS.medium },
-  emptyEmoji: { fontSize: 48 },
-  emptyTitle: { fontSize: 20, fontWeight: '600', color: COLORS.text, marginBottom: 8 },
-  emptyText: { color: COLORS.textMuted, fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  empty: { 
+    flex: 1, 
+    padding: SPACING.xxxl, 
+    alignItems: 'center' 
+  },
+  emptyIcon: { 
+    width: 120, 
+    height: 120, 
+    borderRadius: 60, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginBottom: SPACING.xl, 
+    ...SHADOWS.medium 
+  },
+  emptyEmoji: { 
+    fontSize: 56 
+  },
+  emptyTitle: { 
+    fontSize: FONTS.xl, 
+    fontWeight: '600', 
+    color: COLORS.text, 
+    marginBottom: SPACING.sm 
+  },
+  emptyText: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md, 
+    textAlign: 'center', 
+    lineHeight: 22 
+  },
 });
 

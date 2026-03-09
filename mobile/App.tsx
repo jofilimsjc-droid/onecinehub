@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { Text, View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -7,9 +7,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ToastProvider } from './src/context/ToastContext';
-import { COLORS, GRADIENTS, SHADOWS, SIZES } from './src/theme';
+import { COLORS, SHADOWS, SIZES, DEVICE, GRADIENTS, FONTS, RADIUS, SPACING } from './src/theme';
 
-// Re-export for backward compatibility with any existing imports
+// Re-export for backward compatibility
 export { COLORS, GRADIENTS, SHADOWS, SIZES };
 
 import LoginScreen from './src/screens/LoginScreen';
@@ -35,17 +35,29 @@ const theme = {
     background: COLORS.background,
     card: COLORS.surface,
     text: COLORS.text,
-    border: '#333',
+    border: COLORS.border,
   },
 };
 
 function AuthStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#000' } }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false, 
+        contentStyle: { backgroundColor: COLORS.background },
+        animation: 'fade',
+      }}
+    >
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
   );
+}
+
+interface TabIconProps {
+  focused: boolean;
+  color: string;
+  size: number;
 }
 
 function MainTabs() {
@@ -53,21 +65,54 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: '#000', borderTopColor: '#222', height: 60, paddingBottom: 8, paddingTop: 8 },
-        tabBarActiveTintColor: '#e50914',
-        tabBarInactiveTintColor: '#666',
-        tabBarLabelStyle: { fontSize: 12 },
+        tabBarStyle: {
+          backgroundColor: COLORS.surface,
+          borderTopColor: COLORS.border,
+          borderTopWidth: 1,
+          height: DEVICE.isIOS ? 85 : 65,
+          paddingBottom: DEVICE.isIOS ? 25 : 10,
+          paddingTop: 10,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          elevation: 0,
+        },
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.textMuted,
+        tabBarLabelStyle: {
+          fontSize: FONTS.xs,
+          fontWeight: '600',
+          marginTop: 4,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 5,
+        },
       }}
     >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ tabBarLabel: 'Home', tabBarIcon: () => <Text style={{ fontSize: 20 }}>🎬</Text> }}
+        options={{
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ focused, color, size }: TabIconProps) => (
+            <Text style={{ fontSize: size - 4, color }}>
+              {focused ? '🏠' : '🏡'}
+            </Text>
+          ),
+        }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ tabBarLabel: 'Profile', tabBarIcon: () => <Text style={{ fontSize: 20 }}>👤</Text> }}
+        options={{
+          tabBarLabel: 'Profile',
+          tabBarIcon: ({ focused, color, size }: TabIconProps) => (
+            <Text style={{ fontSize: size - 4, color }}>
+              {focused ? '👤' : '👤'}
+            </Text>
+          ),
+        }}
       />
     </Tab.Navigator>
   );
@@ -75,14 +120,45 @@ function MainTabs() {
 
 function MainStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#000' } }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false, 
+        contentStyle: { backgroundColor: COLORS.background },
+        animation: 'slide_from_right',
+      }}
+    >
       <Stack.Screen name="MainTabs" component={MainTabs} />
-      <Stack.Screen name="MovieDetail" component={MovieDetailScreen} />
-      <Stack.Screen name="Booking" component={BookingScreen} />
+      <Stack.Screen 
+        name="MovieDetail" 
+        component={MovieDetailScreen}
+        options={{
+          animation: 'fade',
+        }}
+      />
+      <Stack.Screen 
+        name="Booking" 
+        component={BookingScreen}
+        options={{
+          animation: 'slide_from_bottom',
+          presentation: 'modal',
+        }}
+      />
       <Stack.Screen name="History" component={HistoryScreen} />
       <Stack.Screen name="Favorites" component={FavoritesScreen} />
-      <Stack.Screen name="Search" component={SearchScreen} />
-      <Stack.Screen name="Notifications" component={NotificationsScreen} />
+      <Stack.Screen 
+        name="Search" 
+        component={SearchScreen}
+        options={{
+          animation: 'fade',
+        }}
+      />
+      <Stack.Screen 
+        name="Notifications" 
+        component={NotificationsScreen}
+        options={{
+          animation: 'slide_from_right',
+        }}
+      />
     </Stack.Navigator>
   );
 }
@@ -93,14 +169,24 @@ function RootNavigator() {
   if (loading) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#e50914" />
+        <View style={styles.loadingInner}>
+          <View style={styles.loadingLogo}>
+            <Text style={styles.loadingLogoText}>🎬</Text>
+          </View>
+          <ActivityIndicator size="large" color={COLORS.primary} style={styles.loadingIndicator} />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
       </View>
     );
   }
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {user ? <Stack.Screen name="Main" component={MainStack} /> : <Stack.Screen name="Auth" component={AuthStack} />}
+      {user ? (
+        <Stack.Screen name="Main" component={MainStack} />
+      ) : (
+        <Stack.Screen name="Auth" component={AuthStack} />
+      )}
     </Stack.Navigator>
   );
 }
@@ -123,9 +209,32 @@ export default function App() {
 const styles = StyleSheet.create({
   loading: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingInner: {
+    alignItems: 'center',
+  },
+  loadingLogo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    ...SHADOWS.glow,
+  },
+  loadingLogoText: {
+    fontSize: 48,
+  },
+  loadingIndicator: {
+    marginBottom: 16,
+  },
+  loadingText: {
+    color: COLORS.textMuted,
+    fontSize: FONTS.md,
   },
 });
 

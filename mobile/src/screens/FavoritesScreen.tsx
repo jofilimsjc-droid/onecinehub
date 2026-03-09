@@ -18,10 +18,10 @@ import { checkAuth, getMovies } from '../api';
 import { useToast } from '../context/ToastContext';
 import type { Movie } from '../types/api';
 import type { RootStackParamList } from '../types/navigation';
-import { COLORS, GRADIENTS, SHADOWS, SIZES } from '../theme';
+import { COLORS, GRADIENTS, SHADOWS, SIZES, FONTS, RADIUS, SPACING } from '../theme';
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 48) / 2;
+const CARD_WIDTH = (width - SPACING.lg * 3) / 2;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Favorites'>;
 
@@ -56,7 +56,7 @@ export default function FavoritesScreen({ navigation }: Props) {
     }
   };
 
-  // Refresh favorites when screen comes into focus (to pick up changes from MovieDetailScreen)
+  // Refresh favorites when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       load(true);
@@ -73,7 +73,10 @@ export default function FavoritesScreen({ navigation }: Props) {
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <View style={styles.loadingLogo}>
+            <Text style={styles.loadingEmoji}>❤️</Text>
+          </View>
+          <ActivityIndicator size="large" color={COLORS.primary} style={styles.loadingIndicator} />
           <Text style={styles.loadingText}>Loading your favorites...</Text>
         </View>
       </SafeAreaView>
@@ -83,8 +86,20 @@ export default function FavoritesScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>My Favorites</Text>
-        <Text style={styles.subtitle}>{favoriteMovies.length} movie{favoriteMovies.length !== 1 ? 's' : ''}</Text>
+        <View style={styles.headerRow}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.backText}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>My Favorites</Text>
+          <View style={styles.placeholder} />
+        </View>
+        <Text style={styles.subtitle}>
+          {favoriteMovies.length} movie{favoriteMovies.length !== 1 ? 's' : ''} saved
+        </Text>
       </View>
 
       <FlatList
@@ -110,7 +125,7 @@ export default function FavoritesScreen({ navigation }: Props) {
               colors={GRADIENTS.card as any}
               style={styles.emptyIcon}
             >
-              <Text style={styles.emptyEmoji}></Text>
+              <Text style={styles.emptyEmoji}>❤️</Text>
             </LinearGradient>
             <Text style={styles.emptyTitle}>No favorites yet</Text>
             <Text style={styles.emptyText}>
@@ -137,7 +152,7 @@ export default function FavoritesScreen({ navigation }: Props) {
                 colors={GRADIENTS.primary as any}
                 style={styles.favoriteBadgeGradient}
               >
-                <Text style={styles.favoriteText}>★</Text>
+                <Text style={styles.favoriteText}>❤️</Text>
               </LinearGradient>
             </View>
             
@@ -155,27 +170,93 @@ export default function FavoritesScreen({ navigation }: Props) {
             </View>
           </TouchableOpacity>
         )}
+        showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  centered: { justifyContent: 'center', alignItems: 'center' },
-  loadingContainer: { alignItems: 'center' },
-  loadingIcon: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 24, ...SHADOWS.glow },
-  loadingEmoji: { fontSize: 36 },
-  loadingText: { color: COLORS.textMuted, fontSize: 14, marginTop: 12 },
-  header: { padding: 20, paddingTop: 8 },
-  title: { fontSize: 26, fontWeight: '700', color: COLORS.text },
-  subtitle: { color: COLORS.textMuted, fontSize: 14, marginTop: 4 },
-  list: { padding: 16, paddingBottom: 100 },
-  row: { justifyContent: 'space-between', marginBottom: 16 },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
+  },
+  centered: { 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  loadingContainer: {
+    alignItems: 'center',
+  },
+  loadingLogo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.xl,
+    ...SHADOWS.glow,
+  },
+  loadingEmoji: {
+    fontSize: 48,
+  },
+  loadingIndicator: {
+    marginBottom: SPACING.md,
+  },
+  loadingText: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md 
+  },
+  header: { 
+    padding: SPACING.lg,
+    paddingTop: SPACING.md,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.sm,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.small,
+  },
+  backText: {
+    color: COLORS.text,
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  title: { 
+    fontSize: FONTS.xxl, 
+    fontWeight: '700', 
+    color: COLORS.text 
+  },
+  placeholder: {
+    width: 40,
+  },
+  subtitle: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md 
+  },
+  list: { 
+    padding: SPACING.lg, 
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.xxxl 
+  },
+  row: { 
+    justifyContent: 'space-between', 
+    marginBottom: SPACING.lg 
+  },
   card: { 
     width: CARD_WIDTH, 
     aspectRatio: 2 / 3, 
-    borderRadius: SIZES.radius, 
+    borderRadius: RADIUS.lg, 
     overflow: 'hidden', 
     backgroundColor: COLORS.surface,
     ...SHADOWS.medium,
@@ -204,24 +285,24 @@ const styles = StyleSheet.create({
     bottom: 0, 
     left: 0, 
     right: 0, 
-    padding: 12,
+    padding: SPACING.md,
   },
   movieTitle: { 
     color: COLORS.text, 
-    fontSize: 14, 
+    fontSize: FONTS.md, 
     fontWeight: '700', 
-    marginBottom: 4,
-    lineHeight: 18,
+    marginBottom: SPACING.xs,
+    lineHeight: 20,
   },
   meta: { 
     color: COLORS.textSecondary, 
-    fontSize: 12,
+    fontSize: FONTS.sm,
   },
   favoriteBadge: { 
     position: 'absolute', 
-    top: 10, 
-    right: 10,
-    borderRadius: 20,
+    top: SPACING.sm, 
+    right: SPACING.sm,
+    borderRadius: RADIUS.full,
     overflow: 'hidden',
     ...SHADOWS.small,
   },
@@ -233,27 +314,50 @@ const styles = StyleSheet.create({
   },
   favoriteText: { 
     fontSize: 16,
-    color: '#fff'
   },
   statusBadge: {
     position: 'absolute',
-    top: 10,
-    left: 10,
+    top: SPACING.sm,
+    left: SPACING.sm,
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.sm,
   },
   statusText: {
     color: COLORS.text,
-    fontSize: 8,
+    fontSize: FONTS.xs,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
-  empty: { flex: 1, padding: 40, alignItems: 'center' },
-  emptyIcon: { width: 100, height: 100, borderRadius: 50, justifyContent: 'center', alignItems: 'center', marginBottom: 20, ...SHADOWS.medium },
-  emptyEmoji: { fontSize: 48 },
-  emptyTitle: { fontSize: 20, fontWeight: '600', color: COLORS.text, marginBottom: 8 },
-  emptyText: { color: COLORS.textMuted, fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  empty: { 
+    flex: 1, 
+    padding: SPACING.xxxl, 
+    alignItems: 'center' 
+  },
+  emptyIcon: { 
+    width: 120, 
+    height: 120, 
+    borderRadius: 60, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginBottom: SPACING.xl, 
+    ...SHADOWS.medium 
+  },
+  emptyEmoji: { 
+    fontSize: 56 
+  },
+  emptyTitle: { 
+    fontSize: FONTS.xl, 
+    fontWeight: '600', 
+    color: COLORS.text, 
+    marginBottom: SPACING.sm 
+  },
+  emptyText: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md, 
+    textAlign: 'center', 
+    lineHeight: 22 
+  },
 });
 

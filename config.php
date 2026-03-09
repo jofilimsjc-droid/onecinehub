@@ -6,7 +6,7 @@ define('DB_PASS', '');
 define('DB_NAME', 'onecinehub');
 
 // Application settings
-define('SITE_URL', 'http://172.20.10.8/onecinehub');
+define('SITE_URL', 'http://192.168.1.198/onecinehub');
 define('SESSION_TIMEOUT', 3600); // 1 hour
 
 // Start session

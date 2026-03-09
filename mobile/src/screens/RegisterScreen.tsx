@@ -16,7 +16,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import type { RootStackParamList } from '../types/navigation';
-import { COLORS, GRADIENTS, SHADOWS, SIZES } from '../theme';
+import { COLORS, GRADIENTS, SHADOWS, SIZES, FONTS, RADIUS, SPACING, DEVICE } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -45,6 +45,12 @@ export default function RegisterScreen({ navigation }: Props) {
     if (passwordStrength < 3) return COLORS.error;
     if (passwordStrength < 5) return COLORS.warning;
     return COLORS.success;
+  };
+
+  const getStrengthLabel = () => {
+    if (passwordStrength < 3) return 'Weak';
+    if (passwordStrength < 5) return 'Medium';
+    return 'Strong';
   };
 
   const handleRegister = async () => {
@@ -93,6 +99,7 @@ export default function RegisterScreen({ navigation }: Props) {
     value: string,
     setValue: (text: string) => void,
     placeholder: string,
+    icon: string,
     isPassword: boolean = false,
     showPasswordToggle?: boolean,
     onTogglePress?: () => void,
@@ -102,6 +109,7 @@ export default function RegisterScreen({ navigation }: Props) {
       styles.inputContainer,
       focusedInput === placeholder && styles.inputContainerFocused
     ]}>
+      <Text style={styles.inputIcon}>{icon}</Text>
       <TextInput
         style={styles.input}
         placeholder={placeholder}
@@ -114,13 +122,21 @@ export default function RegisterScreen({ navigation }: Props) {
         onFocus={() => setFocusedInput(placeholder)}
         onBlur={() => setFocusedInput(null)}
       />
+      {isPassword && showPasswordToggle && (
+        <TouchableOpacity 
+          style={styles.eyeButton} 
+          onPress={onTogglePress}
+        >
+          <Text style={styles.eyeText}>{showPasswordToggle ? '👁️' : '👁️‍🗨️'}</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={[COLORS.surface, COLORS.background]}
+        colors={GRADIENTS.background as any}
         style={styles.gradient}
       >
         <ScrollView 
@@ -128,16 +144,19 @@ export default function RegisterScreen({ navigation }: Props) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.form}>
-          <View style={styles.logoContainer}>
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.form}
+          >
+            <View style={styles.logoContainer}>
               <View style={styles.logoWrapper}>
-              <LinearGradient
+                <LinearGradient
                   colors={GRADIENTS.primary as any}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.logoGradient}
                 >
-                  <Text style={styles.logoText}>C</Text>
+                  <Text style={styles.logoText}>🎬</Text>
                 </LinearGradient>
               </View>
               <Text style={styles.logo}>ONECINEHUB</Text>
@@ -149,11 +168,19 @@ export default function RegisterScreen({ navigation }: Props) {
               <Text style={styles.subtitle}>Join us for an amazing movie experience</Text>
             </View>
 
-            {renderInput(username, setUsername, 'Username')}
-            {renderInput(email, setEmail, 'example@gmail.com', false, false, undefined, 'email-address')}
+            {renderInput(username, setUsername, 'Username', '👤')}
+            {renderInput(email, setEmail, 'example@gmail.com', '✉️', false, false, undefined, 'email-address')}
             
             <View>
-              {renderInput(password, setPassword, 'Password (min 8 characters)', true, showPassword, () => setShowPassword(!showPassword))}
+              {renderInput(
+                password, 
+                setPassword, 
+                'Password (min 8 characters)', 
+                '🔒', 
+                true, 
+                showPassword, 
+                () => setShowPassword(!showPassword)
+              )}
               
               {password.length > 0 && (
                 <View style={styles.strengthContainer}>
@@ -169,7 +196,7 @@ export default function RegisterScreen({ navigation }: Props) {
                     />
                   </View>
                   <Text style={[styles.strengthText, { color: getStrengthColor() }]}>
-                    {passwordStrength < 3 ? 'Weak' : passwordStrength < 5 ? 'Medium' : 'Strong'}
+                    {getStrengthLabel()}
                   </Text>
                 </View>
               )}
@@ -197,6 +224,7 @@ export default function RegisterScreen({ navigation }: Props) {
               confirmPassword, 
               setConfirmPassword, 
               'Confirm Password', 
+              '🔐', 
               true, 
               showConfirmPassword, 
               () => setShowConfirmPassword(!showConfirmPassword)
@@ -223,6 +251,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 style={styles.button} 
                 onPress={handleRegister} 
                 disabled={loading}
+                activeOpacity={0.8}
               >
                 {loading ? (
                   <ActivityIndicator color="#fff" />
@@ -249,7 +278,7 @@ export default function RegisterScreen({ navigation }: Props) {
           </KeyboardAvoidingView>
         </ScrollView>
       </LinearGradient>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -260,22 +289,22 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
-    paddingHorizontal: 24,
   },
   scroll: { 
     flexGrow: 1, 
     justifyContent: 'center', 
-    paddingVertical: 24 
+    paddingVertical: SPACING.xl 
   },
   form: { 
-    width: '100%' 
+    width: '100%',
+    paddingHorizontal: SPACING.xl,
   },
   logoContainer: { 
     alignItems: 'center', 
-    marginBottom: 24 
+    marginBottom: SPACING.xl 
   },
   logoWrapper: {
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
   logoGradient: {
     width: 80,
@@ -290,43 +319,41 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: 36,
-    fontWeight: '800',
-    color: '#fff',
   },
   logo: {
-    fontSize: 28, 
+    fontSize: FONTS.xxxl, 
     fontWeight: '700', 
     color: COLORS.primary,
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
     letterSpacing: 1,
   },
   tagline: { 
-    fontSize: 12, 
+    fontSize: FONTS.sm, 
     color: COLORS.textMuted,
   },
   welcomeCard: {
     backgroundColor: COLORS.surface,
-    borderRadius: SIZES.radiusLarge,
-    padding: 24,
-    marginBottom: 24,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.xl,
+    marginBottom: SPACING.xl,
     ...SHADOWS.medium,
   },
   welcomeText: { 
-    fontSize: 28, 
+    fontSize: FONTS.xxl, 
     fontWeight: '800', 
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
   subtitle: { 
-    fontSize: 14, 
+    fontSize: FONTS.md, 
     color: COLORS.textSecondary, 
     textAlign: 'center',
   },
   inputContainer: { 
     backgroundColor: COLORS.surface, 
-    borderRadius: SIZES.radius,
-    marginBottom: 12, 
+    borderRadius: RADIUS.lg,
+    marginBottom: SPACING.md, 
     flexDirection: 'row', 
     alignItems: 'center', 
     borderWidth: 2, 
@@ -338,22 +365,22 @@ const styles = StyleSheet.create({
   },
   inputIcon: {
     fontSize: 18,
-    marginLeft: 16,
+    marginLeft: SPACING.lg,
   },
   input: { 
     flex: 1, 
-    padding: 16, 
+    padding: SPACING.lg, 
     color: COLORS.text, 
-    fontSize: 16 
+    fontSize: FONTS.md 
   },
   eyeButton: { 
-    padding: 16 
+    padding: SPACING.lg 
   },
   eyeText: { 
     fontSize: 18 
   },
   strengthContainer: {
-    marginBottom: 12,
+    marginBottom: SPACING.md,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -362,44 +389,44 @@ const styles = StyleSheet.create({
     height: 6, 
     backgroundColor: COLORS.surfaceLighter, 
     borderRadius: 3,
-    marginRight: 12,
+    marginRight: SPACING.md,
   },
   strengthFill: { 
     height: '100%', 
     borderRadius: 3,
   },
   strengthText: {
-    fontSize: 12,
+    fontSize: FONTS.sm,
     fontWeight: '600',
     minWidth: 50,
   },
   requirements: { 
     flexDirection: 'row', 
-    gap: 8, 
-    marginBottom: 16 
+    gap: SPACING.sm, 
+    marginBottom: SPACING.lg 
   },
   requirement: { 
     backgroundColor: COLORS.surface, 
-    paddingHorizontal: 12, 
-    paddingVertical: 6, 
-    borderRadius: 6 
+    paddingHorizontal: SPACING.md, 
+    paddingVertical: SPACING.sm, 
+    borderRadius: RADIUS.sm 
   },
   requirementValid: { 
     backgroundColor: 'rgba(34,197,94,0.2)' 
   },
   requirementText: { 
     color: COLORS.textMuted, 
-    fontSize: 12, 
+    fontSize: FONTS.sm, 
     fontWeight: '600' 
   },
   requirementTextValid: { 
     color: COLORS.success 
   },
   matchContainer: {
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   matchText: {
-    fontSize: 13,
+    fontSize: FONTS.md,
   },
   matchTextValid: {
     color: COLORS.success,
@@ -408,31 +435,31 @@ const styles = StyleSheet.create({
     color: COLORS.error,
   },
   buttonGradient: {
-    borderRadius: SIZES.radius,
-    marginTop: 8,
+    borderRadius: RADIUS.lg,
+    marginTop: SPACING.md,
     ...SHADOWS.glow,
   },
   button: { 
     backgroundColor: 'transparent', 
-    padding: 18, 
-    borderRadius: SIZES.radius, 
+    padding: SPACING.lg, 
+    borderRadius: RADIUS.lg, 
     alignItems: 'center',
   },
   buttonText: { 
     color: COLORS.text, 
-    fontSize: 17, 
+    fontSize: FONTS.lg, 
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   terms: {
-    marginTop: 16,
-    marginBottom: 24,
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.xl,
   },
   termsText: {
     color: COLORS.textMuted,
-    fontSize: 12,
+    fontSize: FONTS.sm,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: FONTS.sm * 1.6,
   },
   termsLink: {
     color: COLORS.primary,
@@ -445,11 +472,11 @@ const styles = StyleSheet.create({
   },
   footerText: { 
     color: COLORS.textSecondary, 
-    fontSize: 14 
+    fontSize: FONTS.md 
   },
   linkHighlight: { 
     color: COLORS.primary, 
-    fontSize: 14, 
+    fontSize: FONTS.md, 
     fontWeight: '700' 
   },
 });

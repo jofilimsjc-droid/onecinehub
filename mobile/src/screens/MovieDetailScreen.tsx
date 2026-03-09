@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions, Share, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions, Share, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
@@ -8,7 +8,7 @@ import { toggleFavorite } from '../api';
 import { useToast } from '../context/ToastContext';
 import type { RootStackParamList } from '../types/navigation';
 import type { Movie } from '../types/api';
-import { COLORS, GRADIENTS, SHADOWS, SIZES } from '../theme';
+import { COLORS, GRADIENTS, SHADOWS, SIZES, FONTS, RADIUS, SPACING, DEVICE } from '../theme';
 
 const { width } = Dimensions.get('window');
 
@@ -63,15 +63,29 @@ export default function MovieDetailScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-        <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <TouchableOpacity 
+          style={styles.back} 
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
           <View style={styles.backButton}>
             <Text style={styles.backText}>←</Text>
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
-          <Text style={styles.shareText}>↗</Text>
+        <TouchableOpacity 
+          style={styles.shareBtn} 
+          onPress={handleShare}
+          activeOpacity={0.7}
+        >
+          <View style={styles.shareButton}>
+            <Text style={styles.shareText}>↗</Text>
+          </View>
         </TouchableOpacity>
 
         <View style={styles.posterWrap}>
@@ -79,7 +93,7 @@ export default function MovieDetailScreen({ route, navigation }: Props) {
           <LinearGradient
             colors={['transparent', 'rgba(0,0,0,0.3)', COLORS.background]}
             style={styles.posterGradient}
-            />
+          />
           
           <View style={styles.ratingBadge}>
             <LinearGradient
@@ -88,32 +102,32 @@ export default function MovieDetailScreen({ route, navigation }: Props) {
               end={{ x: 1, y: 0 }}
               style={styles.ratingGradient}
             >
-              <Text style={styles.ratingText}>{movie.rating}</Text>
+              <Text style={styles.ratingText}>⭐ {movie.rating}</Text>
             </LinearGradient>
-          </View>
-
-          <View style={styles.posterActions}>
-            <TouchableOpacity 
-              style={[styles.actionBtn, favorited && styles.actionBtnActive]} 
-              onPress={handleToggleFavorite}
-              disabled={loading}
-            >
-              <Text style={[styles.actionLabel, favorited && styles.actionLabelActive]}>
-                {favorited ? 'Favorited' : 'Favorite'}
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.info}>
           <View style={styles.titleRow}>
+            <TouchableOpacity 
+              style={[styles.favoriteBtn, favorited && styles.favoriteBtnActive]} 
+              onPress={handleToggleFavorite}
+              disabled={loading}
+              activeOpacity={0.7}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                <Text style={styles.favoriteIcon}>{favorited ? '❤️' : '🤍'}</Text>
+              )}
+            </TouchableOpacity>
             <Text style={styles.title}>{movie.title}</Text>
           </View>
           
           <View style={styles.metaRow}>
-            <Text style={styles.metaText}>{movie.genre}</Text>
+            <Text style={styles.metaText}>🎬 {movie.genre}</Text>
             <View style={styles.metaDivider} />
-            <Text style={styles.metaText}>{movie.duration}</Text>
+            <Text style={styles.metaText}>⏱️ {movie.duration}</Text>
           </View>
 
           <View style={styles.statusContainer}>
@@ -155,19 +169,22 @@ export default function MovieDetailScreen({ route, navigation }: Props) {
               <TouchableOpacity 
                 style={styles.primaryBtn} 
                 onPress={() => navigation.navigate('Booking', { movie })}
+                activeOpacity={0.8}
               >
-                <Text style={styles.primaryBtnText}>Get Tickets</Text>
+                <Text style={styles.primaryBtnText}>🎟️ Get Tickets</Text>
               </TouchableOpacity>
             </LinearGradient>
 
             {trailerUrl ? (
-              <TouchableOpacity style={styles.secondaryBtn} onPress={() => openTrailer(trailerUrl)}>
-                <Text style={styles.secondaryBtnText}>Watch Trailer</Text>
+              <TouchableOpacity 
+                style={styles.secondaryBtn} 
+                onPress={() => openTrailer(trailerUrl)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.secondaryBtnText}>▶️ Watch Trailer</Text>
               </TouchableOpacity>
             ) : null}
           </View>
-
-
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -175,39 +192,56 @@ export default function MovieDetailScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  scrollView: { flex: 1 },
-  content: { paddingBottom: 40 },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
+  },
+  scrollView: { 
+    flex: 1 
+  },
+  content: { 
+    paddingBottom: SPACING.xxxl 
+  },
   back: { 
     position: 'absolute', 
-    top: 50, 
-    left: 16, 
+    top: DEVICE.statusBarHeight + SPACING.sm, 
+    left: SPACING.lg, 
     zIndex: 10,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.full,
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     ...SHADOWS.small,
   },
-  backText: { color: COLORS.text, fontSize: 14, fontWeight: '600' },
+  backText: { 
+    color: COLORS.text, 
+    fontSize: 18, 
+    fontWeight: '600' 
+  },
   shareBtn: {
     position: 'absolute',
-    top: 50,
-    right: 16,
+    top: DEVICE.statusBarHeight + SPACING.sm,
+    right: SPACING.lg,
     zIndex: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+  },
+  shareButton: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.full,
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     ...SHADOWS.small,
   },
-  shareText: { color: COLORS.text, fontSize: 14, fontWeight: '600' },
+  shareText: { 
+    color: COLORS.text, 
+    fontSize: 18, 
+    fontWeight: '600' 
+  },
   posterWrap: {
     width: width, 
     aspectRatio: 2 / 3,
@@ -227,99 +261,126 @@ const styles = StyleSheet.create({
   },
   ratingBadge: {
     position: 'absolute',
-    top: 16,
-    right: 16,
-    borderRadius: 8,
+    top: SPACING.lg,
+    right: SPACING.lg,
+    borderRadius: RADIUS.lg,
     overflow: 'hidden',
     ...SHADOWS.medium,
   },
   ratingGradient: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
   },
-  ratingText: { color: COLORS.text, fontWeight: '700', fontSize: 14 },
-  posterActions: {
-    position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
-    flexDirection: 'row',
+  ratingText: { 
+    color: COLORS.text, 
+    fontWeight: '700', 
+    fontSize: FONTS.md 
+  },
+  info: {
+    paddingHorizontal: SPACING.lg, 
+    marginTop: -SPACING.xxxl 
+  },
+  titleRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginBottom: SPACING.md 
+  },
+  favoriteBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surface,
     justifyContent: 'center',
-  },
-  actionBtn: {
-    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    marginRight: SPACING.md,
     ...SHADOWS.small,
   },
-  actionBtnActive: {
-    borderColor: COLORS.primary,
-    backgroundColor: 'rgba(229,9,20,0.2)',
+  favoriteBtnActive: {
+    backgroundColor: 'rgba(229,9,20,0.15)',
   },
-  actionIcon: { fontSize: 20, marginRight: 8 },
-  actionLabel: { color: COLORS.text, fontSize: 14, fontWeight: '600' },
-  actionLabelActive: { color: COLORS.primary },
-  info: { paddingHorizontal: 20, marginTop: -40 },
-  titleRow: { marginBottom: 12 },
-  title: { fontSize: 28, fontWeight: '800', color: COLORS.text, lineHeight: 34 },
+  favoriteIcon: { 
+    fontSize: 18 
+  },
+  title: { 
+    flex: 1,
+    fontSize: FONTS.xxxl, 
+    fontWeight: '800', 
+    color: COLORS.text, 
+    lineHeight: 38 
+  },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
+    flexWrap: 'wrap',
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  metaIcon: { fontSize: 14, marginRight: 6 },
-  metaText: { color: COLORS.textSecondary, fontSize: 14 },
+  metaIcon: { 
+    fontSize: 14, 
+    marginRight: SPACING.sm 
+  },
+  metaText: { 
+    color: COLORS.textSecondary, 
+    fontSize: FONTS.md 
+  },
   metaDivider: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: COLORS.textMuted,
-    marginHorizontal: 12,
+    marginHorizontal: SPACING.md,
   },
   statusContainer: {
-    marginBottom: 24,
+    marginBottom: SPACING.xl,
   },
   statusBadge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.full,
     ...SHADOWS.small,
   },
-  statusText: { color: COLORS.text, fontSize: 12, fontWeight: '800', letterSpacing: 1 },
-  statusTextDark: { color: '#000' },
-  section: { marginBottom: 24 },
+  statusText: { 
+    color: COLORS.text, 
+    fontSize: FONTS.sm, 
+    fontWeight: '800', 
+    letterSpacing: 1 
+  },
+  statusTextDark: { 
+    color: '#000' 
+  },
+  section: { 
+    marginBottom: SPACING.xl 
+  },
   sectionTitle: { 
     color: COLORS.primary, 
-    fontSize: 18, 
+    fontSize: FONTS.lg, 
     fontWeight: '700', 
-    marginBottom: 12 
+    marginBottom: SPACING.md 
   },
   sectionContent: {
     backgroundColor: COLORS.surface,
-    borderRadius: SIZES.radius,
-    padding: 16,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
     ...SHADOWS.small,
   },
-  body: { color: COLORS.textSecondary, fontSize: 15, lineHeight: 24 },
+  body: { 
+    color: COLORS.textSecondary, 
+    fontSize: FONTS.md, 
+    lineHeight: 24 
+  },
   buttons: { 
     flexDirection: 'row', 
-    gap: 12, 
-    marginTop: 8,
-    marginBottom: 32,
+    gap: SPACING.md, 
+    marginTop: SPACING.md,
+    marginBottom: SPACING.xl,
   },
   primaryBtnGradient: {
-    flex: 1,
-    borderRadius: SIZES.radius,
+    flex: 1.2,
+    borderRadius: RADIUS.lg,
     ...SHADOWS.glow,
   },
   primaryBtn: { 
@@ -327,40 +388,66 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent', 
-    padding: 16, 
-    borderRadius: SIZES.radius,
+    padding: SPACING.lg, 
+    borderRadius: RADIUS.lg,
   },
-  primaryBtnIcon: { fontSize: 18, marginRight: 8 },
-  primaryBtnText: { color: COLORS.text, fontSize: 16, fontWeight: '700' },
+  primaryBtnIcon: { 
+    fontSize: 18, 
+    marginRight: SPACING.sm 
+  },
+  primaryBtnText: { 
+    color: COLORS.text, 
+    fontSize: FONTS.lg, 
+    fontWeight: '700' 
+  },
   secondaryBtn: { 
     flex: 1, 
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16, 
-    borderRadius: SIZES.radius, 
+    padding: SPACING.lg, 
+    borderRadius: RADIUS.lg, 
     borderWidth: 2, 
     borderColor: COLORS.surfaceLighter,
     backgroundColor: COLORS.surface,
     ...SHADOWS.small,
   },
-  secondaryBtnIcon: { fontSize: 16, marginRight: 8 },
-  secondaryBtnText: { color: COLORS.text, fontSize: 15, fontWeight: '600' },
+  secondaryBtnIcon: { 
+    fontSize: 16, 
+    marginRight: SPACING.sm 
+  },
+  secondaryBtnText: { 
+    color: COLORS.text, 
+    fontSize: FONTS.md, 
+    fontWeight: '600' 
+  },
   infoCards: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 10,
+    gap: SPACING.md,
   },
   infoCard: {
     flex: 1,
     backgroundColor: COLORS.surface,
-    borderRadius: SIZES.radius,
-    padding: 16,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
     alignItems: 'center',
     ...SHADOWS.small,
   },
-  infoCardIcon: { fontSize: 24, marginBottom: 8 },
-  infoCardTitle: { color: COLORS.text, fontSize: 13, fontWeight: '700', marginBottom: 4 },
-  infoCardText: { color: COLORS.textMuted, fontSize: 11, textAlign: 'center' },
+  infoCardIcon: { 
+    fontSize: 24, 
+    marginBottom: SPACING.sm 
+  },
+  infoCardTitle: { 
+    color: COLORS.text, 
+    fontSize: FONTS.md, 
+    fontWeight: '700', 
+    marginBottom: SPACING.xs 
+  },
+  infoCardText: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.sm, 
+    textAlign: 'center' 
+  },
 });
 

@@ -7,7 +7,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getNotifications, markNotificationRead, markAllNotificationsRead } from '../api';
 import { useToast } from '../context/ToastContext';
 import type { RootStackParamList } from '../types/navigation';
-import { COLORS, GRADIENTS, SHADOWS, SIZES } from '../theme';
+import { COLORS, GRADIENTS, SHADOWS, SIZES, FONTS, RADIUS, SPACING } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Notifications'>;
 
@@ -89,6 +89,16 @@ export default function NotificationsScreen({ navigation }: Props) {
     return date.toLocaleDateString();
   };
 
+  const getNotificationIcon = (message: string) => {
+    const lowerMessage = message.toLowerCase();
+    if (lowerMessage.includes('booking') || lowerMessage.includes('ticket')) return '🎟️';
+    if (lowerMessage.includes('favorite') || lowerMessage.includes('heart')) return '❤️';
+    if (lowerMessage.includes('movie') || lowerMessage.includes('film')) return '🎬';
+    if (lowerMessage.includes('offer') || lowerMessage.includes('discount')) return '🎁';
+    if (lowerMessage.includes('account') || lowerMessage.includes('profile')) return '👤';
+    return '🔔';
+  };
+
   const renderNotification = ({ item }: { item: Notification }) => (
     <TouchableOpacity
       style={[
@@ -113,7 +123,7 @@ export default function NotificationsScreen({ navigation }: Props) {
           styles.iconContainer,
           item.is_read === 0 && styles.iconContainerUnread
         ]}>
-          <Text style={styles.iconText}></Text>
+          <Text style={styles.iconText}>{getNotificationIcon(item.message)}</Text>
         </View>
         <View style={styles.textContainer}>
           <Text style={[
@@ -138,7 +148,10 @@ export default function NotificationsScreen({ navigation }: Props) {
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <View style={styles.loadingLogo}>
+            <Text style={styles.loadingEmoji}>🔔</Text>
+          </View>
+          <ActivityIndicator size="large" color={COLORS.primary} style={styles.loadingIndicator} />
           <Text style={styles.loadingText}>Loading notifications...</Text>
         </View>
       </SafeAreaView>
@@ -149,16 +162,22 @@ export default function NotificationsScreen({ navigation }: Props) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <View style={styles.backButton}>
-              <Text style={styles.backText}>←</Text>
-            </View>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.backText}>←</Text>
           </TouchableOpacity>
           {unreadCount > 0 && (
-            <TouchableOpacity onPress={handleMarkAllAsRead}>
+            <TouchableOpacity 
+              style={styles.markAllButton}
+              onPress={handleMarkAllAsRead}
+              activeOpacity={0.7}
+            >
               <LinearGradient
                 colors={GRADIENTS.primary as any}
-                style={styles.markAllButton}
+                style={styles.markAllGradient}
               >
                 <Text style={styles.markAllText}>Mark all read</Text>
               </LinearGradient>
@@ -195,7 +214,7 @@ export default function NotificationsScreen({ navigation }: Props) {
               colors={GRADIENTS.card as any}
               style={styles.emptyIcon}
             >
-              <Text style={styles.emptyEmoji}></Text>
+              <Text style={styles.emptyEmoji}>🔔</Text>
             </LinearGradient>
             <Text style={styles.emptyTitle}>No notifications</Text>
             <Text style={styles.emptyText}>
@@ -203,32 +222,103 @@ export default function NotificationsScreen({ navigation }: Props) {
             </Text>
           </View>
         }
+        showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  centered: { justifyContent: 'center', alignItems: 'center' },
-  loadingContainer: { alignItems: 'center' },
-  loadingIcon: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 24, ...SHADOWS.glow },
-  loadingEmoji: { fontSize: 36 },
-  loadingText: { color: COLORS.textMuted, fontSize: 14, marginTop: 12 },
-  header: { padding: 20, paddingBottom: 8 },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, justifyContent: 'center', alignItems: 'center', ...SHADOWS.small },
-  backText: { color: COLORS.text, fontSize: 20, fontWeight: '600' },
-  markAllButton: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20 },
-  markAllText: { color: COLORS.text, fontSize: 13, fontWeight: '600' },
-  title: { fontSize: 26, fontWeight: '700', color: COLORS.text },
-  subtitle: { color: COLORS.textMuted, fontSize: 14, marginTop: 4 },
-  list: { padding: 16, paddingTop: 8, paddingBottom: 100 },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
+  },
+  centered: { 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  loadingContainer: {
+    alignItems: 'center',
+  },
+  loadingLogo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.xl,
+    ...SHADOWS.glow,
+  },
+  loadingEmoji: {
+    fontSize: 48,
+  },
+  loadingIndicator: {
+    marginBottom: SPACING.md,
+  },
+  loadingText: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md 
+  },
+  header: { 
+    padding: SPACING.lg,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.sm,
+  },
+  headerTop: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: SPACING.md 
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.small,
+  },
+  backText: { 
+    color: COLORS.text, 
+    fontSize: 20, 
+    fontWeight: '600' 
+  },
+  markAllButton: {
+    borderRadius: RADIUS.full,
+    overflow: 'hidden',
+    ...SHADOWS.small,
+  },
+  markAllGradient: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+  },
+  markAllText: { 
+    color: COLORS.text, 
+    fontSize: FONTS.sm, 
+    fontWeight: '600' 
+  },
+  title: { 
+    fontSize: FONTS.xxl, 
+    fontWeight: '700', 
+    color: COLORS.text 
+  },
+  subtitle: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md, 
+    marginTop: SPACING.xs 
+  },
+  list: { 
+    padding: SPACING.lg, 
+    paddingTop: SPACING.sm, 
+    paddingBottom: SPACING.xxxl 
+  },
   card: { 
     backgroundColor: COLORS.surface, 
-    borderRadius: SIZES.radius, 
-    padding: 16, 
-    marginBottom: 12,
+    borderRadius: RADIUS.lg, 
+    padding: SPACING.lg, 
+    marginBottom: SPACING.md,
     overflow: 'hidden',
     ...SHADOWS.small,
   },
@@ -245,28 +335,28 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start' 
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 52,
+    height: 52,
+    borderRadius: RADIUS.lg,
     backgroundColor: COLORS.surfaceLighter,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: SPACING.md,
   },
   iconContainerUnread: {
     backgroundColor: COLORS.primary + '20',
   },
   iconText: {
-    fontSize: 20,
+    fontSize: 24,
   },
   textContainer: { 
     flex: 1 
   },
   message: { 
     color: COLORS.textSecondary, 
-    fontSize: 14, 
-    lineHeight: 20,
-    marginBottom: 8,
+    fontSize: FONTS.md, 
+    lineHeight: 22,
+    marginBottom: SPACING.sm,
   },
   messageUnread: { 
     color: COLORS.text,
@@ -277,23 +367,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 8,
+    height: 8,
+    borderRadius: RADIUS.full,
     backgroundColor: COLORS.surfaceLighter,
-    marginRight: 8,
+    marginRight: SPACING.sm,
   },
   statusDotUnread: {
     backgroundColor: COLORS.primary,
   },
   date: { 
     color: COLORS.textMuted, 
-    fontSize: 12 
+    fontSize: FONTS.sm 
   },
-  empty: { flex: 1, padding: 40, alignItems: 'center' },
-  emptyIcon: { width: 100, height: 100, borderRadius: 50, justifyContent: 'center', alignItems: 'center', marginBottom: 20, ...SHADOWS.medium },
-  emptyEmoji: { fontSize: 48 },
-  emptyTitle: { fontSize: 20, fontWeight: '600', color: COLORS.text, marginBottom: 8 },
-  emptyText: { color: COLORS.textMuted, fontSize: 14, textAlign: 'center' },
+  empty: { 
+    flex: 1, 
+    padding: SPACING.xxxl, 
+    alignItems: 'center' 
+  },
+  emptyIcon: { 
+    width: 120, 
+    height: 120, 
+    borderRadius: 60, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginBottom: SPACING.xl, 
+    ...SHADOWS.medium 
+  },
+  emptyEmoji: { 
+    fontSize: 56 
+  },
+  emptyTitle: { 
+    fontSize: FONTS.xl, 
+    fontWeight: '600', 
+    color: COLORS.text, 
+    marginBottom: SPACING.sm 
+  },
+  emptyText: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md, 
+    textAlign: 'center',
+    lineHeight: 22 
+  },
 });
 

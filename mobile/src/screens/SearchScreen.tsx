@@ -16,7 +16,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getMovies } from '../api';
 import type { Movie } from '../types/api';
 import type { RootStackParamList } from '../types/navigation';
-import { COLORS, GRADIENTS, SHADOWS, SIZES } from '../theme';
+import { COLORS, GRADIENTS, SHADOWS, SIZES, FONTS, RADIUS, SPACING } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Search'>;
 
@@ -24,7 +24,6 @@ export default function SearchScreen({ navigation }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchLoading, setSearchLoading] = useState(false);
 
   const loadMovies = async () => {
     setLoading(true);
@@ -58,7 +57,6 @@ export default function SearchScreen({ navigation }: Props) {
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
-    setSearchLoading(false);
   };
 
   const renderMovie = ({ item }: { item: Movie }) => (
@@ -97,7 +95,10 @@ export default function SearchScreen({ navigation }: Props) {
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <View style={styles.loadingLogo}>
+            <Text style={styles.loadingEmoji}>🔍</Text>
+          </View>
+          <ActivityIndicator size="large" color={COLORS.primary} style={styles.loadingIndicator} />
           <Text style={styles.loadingText}>Loading movies...</Text>
         </View>
       </SafeAreaView>
@@ -107,11 +108,22 @@ export default function SearchScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Search Movies</Text>
+        <View style={styles.headerRow}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.backText}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Search</Text>
+          <View style={styles.placeholder} />
+        </View>
         <Text style={styles.headerSubtitle}>Find your next favorite film</Text>
       </View>
 
       <View style={styles.searchContainer}>
+        <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
           placeholder="Search by title or genre..."
@@ -125,8 +137,9 @@ export default function SearchScreen({ navigation }: Props) {
           <TouchableOpacity
             style={styles.clearButton}
             onPress={() => setSearchQuery('')}
+            activeOpacity={0.7}
           >
-            <Text style={styles.clearText}>Clear</Text>
+            <Text style={styles.clearText}>✕</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -155,53 +168,131 @@ export default function SearchScreen({ navigation }: Props) {
             </Text>
           </View>
         }
+        showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  centered: { justifyContent: 'center', alignItems: 'center' },
-  loadingContainer: { alignItems: 'center' },
-  loadingIcon: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 24, ...SHADOWS.glow },
-  loadingEmoji: { fontSize: 36 },
-  loadingText: { color: COLORS.textMuted, fontSize: 14, marginTop: 12 },
-  header: { padding: 20, paddingBottom: 12 },
-  headerTitle: { fontSize: 26, fontWeight: '700', color: COLORS.text },
-  headerSubtitle: { color: COLORS.textMuted, fontSize: 14, marginTop: 4 },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
+  },
+  centered: { 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  loadingContainer: {
+    alignItems: 'center',
+  },
+  loadingLogo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.xl,
+    ...SHADOWS.glow,
+  },
+  loadingEmoji: {
+    fontSize: 48,
+  },
+  loadingIndicator: {
+    marginBottom: SPACING.md,
+  },
+  loadingText: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md 
+  },
+  header: { 
+    padding: SPACING.lg,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.md,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.xs,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.small,
+  },
+  backText: {
+    color: COLORS.text,
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  headerTitle: { 
+    fontSize: FONTS.xxl, 
+    fontWeight: '700', 
+    color: COLORS.text 
+  },
+  placeholder: {
+    width: 40,
+  },
+  headerSubtitle: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md 
+  },
   searchContainer: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     backgroundColor: COLORS.surface, 
-    marginHorizontal: 20, 
-    borderRadius: SIZES.radius, 
+    marginHorizontal: SPACING.lg, 
+    borderRadius: RADIUS.lg, 
     borderWidth: 1, 
-    borderColor: COLORS.surfaceLighter,
+    borderColor: COLORS.border,
     ...SHADOWS.small,
+  },
+  searchIcon: {
+    fontSize: 18,
+    marginLeft: SPACING.lg,
   },
   searchInput: { 
     flex: 1, 
-    padding: 16, 
+    padding: SPACING.lg, 
     color: COLORS.text, 
-    fontSize: 16 
+    fontSize: FONTS.md 
   },
   clearButton: {
-    padding: 12,
+    padding: SPACING.md,
+    marginRight: SPACING.sm,
   },
   clearText: { 
-    color: COLORS.primary, 
-    fontSize: 14,
+    color: COLORS.textMuted, 
+    fontSize: FONTS.lg,
     fontWeight: '600',
   },
-  resultsHeader: { paddingHorizontal: 20, paddingVertical: 12 },
-  resultCount: { color: COLORS.textMuted, fontSize: 13 },
-  list: { padding: 16, paddingTop: 0, paddingBottom: 100 },
-  row: { justifyContent: 'space-between', marginBottom: 16 },
+  resultsHeader: { 
+    paddingHorizontal: SPACING.lg, 
+    paddingVertical: SPACING.md 
+  },
+  resultCount: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md 
+  },
+  list: { 
+    padding: SPACING.lg, 
+    paddingTop: 0, 
+    paddingBottom: SPACING.xxxl 
+  },
+  row: { 
+    justifyContent: 'space-between', 
+    marginBottom: SPACING.lg 
+  },
   card: { 
     width: '48%', 
     aspectRatio: 2 / 3, 
-    borderRadius: SIZES.radius, 
+    borderRadius: RADIUS.lg, 
     overflow: 'hidden', 
     backgroundColor: COLORS.surface,
     ...SHADOWS.medium,
@@ -227,18 +318,18 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    top: 8,
-    left: 8,
-    borderRadius: 4,
+    top: SPACING.sm,
+    left: SPACING.sm,
+    borderRadius: RADIUS.sm,
     overflow: 'hidden',
   },
   badgeGradient: {
-    paddingHorizontal: 6,
-    paddingVertical: 3,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
   },
   badgeText: { 
     color: COLORS.text, 
-    fontSize: 8, 
+    fontSize: FONTS.xs, 
     fontWeight: '800',
     letterSpacing: 0.5,
   },
@@ -247,23 +338,48 @@ const styles = StyleSheet.create({
     bottom: 0, 
     left: 0, 
     right: 0, 
-    padding: 12,
+    padding: SPACING.md,
   },
   title: { 
     color: COLORS.text, 
-    fontSize: 14, 
+    fontSize: FONTS.md, 
     fontWeight: '700', 
-    marginBottom: 4,
-    lineHeight: 18,
+    marginBottom: SPACING.xs,
+    lineHeight: 20,
   },
   meta: { 
     color: COLORS.textSecondary, 
-    fontSize: 11,
+    fontSize: FONTS.sm,
   },
-  empty: { flex: 1, padding: 40, alignItems: 'center' },
-  emptyIcon: { width: 100, height: 100, borderRadius: 50, justifyContent: 'center', alignItems: 'center', marginBottom: 20, ...SHADOWS.medium },
-  emptyEmoji: { fontSize: 48 },
-  emptyTitle: { fontSize: 20, fontWeight: '600', color: COLORS.text, marginBottom: 8 },
-  emptyText: { color: COLORS.textMuted, fontSize: 14, textAlign: 'center' },
+  empty: { 
+    flex: 1, 
+    padding: SPACING.xxxl, 
+    alignItems: 'center' 
+  },
+  emptyIcon: { 
+    width: 120, 
+    height: 120, 
+    borderRadius: 60, 
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginBottom: SPACING.xl, 
+    ...SHADOWS.medium 
+  },
+  emptyEmoji: { 
+    fontSize: 56 
+  },
+  emptyTitle: { 
+    fontSize: FONTS.xl, 
+    fontWeight: '600', 
+    color: COLORS.text, 
+    marginBottom: SPACING.sm 
+  },
+  emptyText: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md, 
+    textAlign: 'center',
+    lineHeight: 22 
+  },
 });
 

@@ -1,4 +1,4 @@
-﻿import React, { useCallback } from 'react';
+﻿import React, { useCallback, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -8,8 +8,9 @@ import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { checkAuth } from '../api';
 import type { MainTabParamList, RootStackParamList } from '../types/navigation';
-import { COLORS, GRADIENTS, SHADOWS, SIZES } from '../theme';
+import { COLORS, GRADIENTS, SHADOWS, SIZES, FONTS, RADIUS, SPACING, DEVICE } from '../theme';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Profile'>,
@@ -19,13 +20,36 @@ type Props = CompositeScreenProps<
 export default function ProfileScreen({ navigation }: Props) {
   const { user, logout, reload } = useAuth();
   const { showToast } = useToast();
+  const [favoritesCount, setFavoritesCount] = useState(0);
+  const [bookingsCount, setBookingsCount] = useState(0);
+  const [loadingStats, setLoadingStats] = useState(true);
 
-  // Refresh user data when screen comes into focus
+  // Fetch user activity data
+  const loadUserActivity = async () => {
+    try {
+      const res = await checkAuth();
+      if (res.ok && res.data) {
+        setFavoritesCount(res.data.favorites?.length || 0);
+        setBookingsCount(res.data.bookingHistory?.length || 0);
+      }
+    } catch {
+      // Keep default values on error
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  // Refresh user data and activity when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       reload();
+      loadUserActivity();
     }, [reload])
   );
+
+  useEffect(() => {
+    loadUserActivity();
+  }, []);
 
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -42,14 +66,17 @@ export default function ProfileScreen({ navigation }: Props) {
   };
 
   const menuItems = [
-    { title: 'Notifications', screen: 'Notifications', color: COLORS.primary },
-    { title: 'Booking History', screen: 'History', color: COLORS.gold },
-    { title: 'Favorites', screen: 'Favorites', color: '#ef4444' },
+    { title: 'Notifications', screen: 'Notifications', icon: '🔔', color: COLORS.primary },
+    { title: 'Booking History', screen: 'History', icon: '🎟️', color: COLORS.gold },
+    { title: 'Favorites', screen: 'Favorites', icon: '❤️', color: COLORS.error },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <View>
@@ -60,39 +87,55 @@ export default function ProfileScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.profileCard}>
-          <LinearGradient
-            colors={GRADIENTS.primary as any}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.profileGradient}
-          >
-            <View style={styles.avatarContainer}>
+          <View style={styles.profileHeader}>
+            <View style={styles.avatarWrapper}>
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>
                   {user?.username?.charAt(0)?.toUpperCase() || '?'}
                 </Text>
               </View>
-              <View style={styles.avatarRing} />
             </View>
-          </LinearGradient>
-          
-          <Text style={styles.username}>{user?.username || 'User'}</Text>
-          <Text style={styles.email}>{user?.email || ''}</Text>
+            <View style={styles.profileInfo}>
+              <Text style={styles.username}>{user?.username || 'User'}</Text>
+              <Text style={styles.email}>{user?.email || ''}</Text>
+              <View style={styles.memberBadge}>
+                <Text style={styles.memberBadgeText}>🎬 Movie Enthusiast</Text>
+              </View>
+            </View>
+          </View>
           
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <View style={[styles.statBadge, { backgroundColor: COLORS.primary }]} />
-              <Text style={styles.statLabel}>Movies</Text>
+              {loadingStats ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                <>
+                  <Text style={styles.statValue}>0</Text>
+                  <Text style={styles.statLabel}>Movies</Text>
+                </>
+              )}
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <View style={[styles.statBadge, { backgroundColor: '#ef4444' }]} />
-              <Text style={styles.statLabel}>Favorites</Text>
+              {loadingStats ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                <>
+                  <Text style={styles.statValue}>{favoritesCount}</Text>
+                  <Text style={styles.statLabel}>Favorites</Text>
+                </>
+              )}
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <View style={[styles.statBadge, { backgroundColor: COLORS.gold }]} />
-              <Text style={styles.statLabel}>Bookings</Text>
+              {loadingStats ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                <>
+                  <Text style={styles.statValue}>{bookingsCount}</Text>
+                  <Text style={styles.statLabel}>Bookings</Text>
+                </>
+              )}
             </View>
           </View>
         </View>
@@ -107,6 +150,7 @@ export default function ProfileScreen({ navigation }: Props) {
               activeOpacity={0.7}
             >
               <View style={[styles.menuIconContainer, { backgroundColor: item.color + '20' }]}>
+                <Text style={styles.menuIcon}>{item.icon}</Text>
               </View>
               <Text style={styles.menuText}>{item.title}</Text>
               <View style={styles.menuArrow}>
@@ -116,19 +160,22 @@ export default function ProfileScreen({ navigation }: Props) {
           ))}
         </View>
 
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+        <TouchableOpacity 
+          style={styles.logoutBtn} 
+          onPress={handleLogout}
+          activeOpacity={0.7}
+        >
           <LinearGradient
             colors={['rgba(239,68,68,0.1)', 'rgba(239,68,68,0.05)']}
             style={styles.logoutGradient}
           >
+           
             <Text style={styles.logoutText}>Sign Out</Text>
           </LinearGradient>
         </TouchableOpacity>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>ONECINEHUB</Text>
-          <Text style={styles.version}>Version 1.0.0</Text>
-          <Text style={styles.copyright}>© 2024 All rights reserved</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -136,104 +183,131 @@ export default function ProfileScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  header: { padding: 20, paddingTop: 8 },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  logo: { fontSize: 24, fontWeight: '700', color: COLORS.primary },
-  tagline: { color: COLORS.textMuted, fontSize: 14, marginTop: 4 },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
+  },
+  scrollContent: {
+    paddingBottom: SIZES.tabBarHeight + SPACING.xl,
+  },
+  header: { 
+    padding: SPACING.lg, 
+    paddingTop: SPACING.md 
+  },
+  headerTop: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'flex-start' 
+  },
+  logo: { 
+    fontSize: FONTS.xxl, 
+    fontWeight: '700', 
+    color: COLORS.primary 
+  },
+  tagline: { 
+    color: COLORS.textMuted, 
+    fontSize: FONTS.md, 
+    marginTop: SPACING.xs 
+  },
   profileCard: { 
     backgroundColor: COLORS.surface, 
-    marginHorizontal: 20, 
-    marginBottom: 20, 
-    borderRadius: SIZES.radiusLarge, 
-    padding: 24, 
-    alignItems: 'center',
+    marginHorizontal: SPACING.lg, 
+    marginBottom: SPACING.lg, 
+    borderRadius: RADIUS.xl, 
+    padding: SPACING.xl, 
     overflow: 'hidden',
     ...SHADOWS.medium,
   },
-  profileGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 120,
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  avatarWrapper: {
+    marginRight: SPACING.lg,
   },
   avatarContainer: {
     position: 'relative',
-    marginBottom: 12,
   },
   avatar: { 
     width: 80, 
     height: 80, 
-    borderRadius: 40, 
-    backgroundColor: COLORS.surface, 
+    borderRadius: RADIUS.full, 
+    backgroundColor: COLORS.surfaceLight, 
     justifyContent: 'center', 
     alignItems: 'center',
-    borderWidth: 4,
-    borderColor: COLORS.surface,
-    ...SHADOWS.medium,
-  },
-  avatarRing: {
-    position: 'absolute',
-    top: -4,
-    left: -4,
-    right: -4,
-    bottom: -4,
-    borderRadius: 44,
     borderWidth: 3,
     borderColor: COLORS.primary,
+    ...SHADOWS.medium,
   },
   avatarText: { 
     color: COLORS.primary, 
     fontSize: 32, 
     fontWeight: '700' 
   },
+  profileInfo: {
+    flex: 1,
+  },
   username: { 
-    fontSize: 22, 
+    fontSize: FONTS.xxl, 
     fontWeight: '700', 
     color: COLORS.text, 
-    marginBottom: 4 
+    marginBottom: SPACING.xs 
   },
   email: { 
     color: COLORS.textMuted, 
-    fontSize: 14,
-    marginBottom: 16,
+    fontSize: FONTS.md,
+    marginBottom: SPACING.sm,
+  },
+  memberBadge: {
+    backgroundColor: COLORS.primary + '20',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.full,
+    alignSelf: 'flex-start',
+  },
+  memberBadgeText: {
+    color: COLORS.primary,
+    fontSize: FONTS.sm,
+    fontWeight: '600',
   },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-around',
     alignItems: 'center',
     backgroundColor: COLORS.surfaceLighter,
-    borderRadius: SIZES.radius,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    borderRadius: RADIUS.lg,
+    paddingVertical: SPACING.lg,
   },
   statItem: {
     alignItems: 'center',
-    paddingHorizontal: 16,
+    flex: 1,
   },
-  statBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginBottom: 8,
+  statValue: {
+    color: COLORS.text,
+    fontSize: FONTS.xxl,
+    fontWeight: '700',
+    marginBottom: SPACING.xs,
   },
   statLabel: {
     color: COLORS.textMuted,
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: FONTS.sm,
+    fontWeight: '500',
   },
   statDivider: {
     width: 1,
     height: 30,
     backgroundColor: COLORS.surface,
   },
-  menuContainer: { paddingHorizontal: 20, marginBottom: 20 },
+  menuContainer: { 
+    paddingHorizontal: SPACING.lg, 
+    marginBottom: SPACING.lg 
+  },
   sectionTitle: { 
-    fontSize: 14, 
+    fontSize: FONTS.sm, 
     fontWeight: '700', 
     color: COLORS.textMuted, 
-    marginBottom: 12, 
+    marginBottom: SPACING.md, 
     textTransform: 'uppercase', 
     letterSpacing: 1 
   },
@@ -241,26 +315,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     alignItems: 'center', 
     backgroundColor: COLORS.surface, 
-    padding: 16, 
-    borderRadius: SIZES.radius, 
-    marginBottom: 10, 
+    padding: SPACING.lg, 
+    borderRadius: RADIUS.lg, 
+    marginBottom: SPACING.md, 
     ...SHADOWS.small,
   },
   menuIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: RADIUS.lg,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: SPACING.md,
   },
   menuIcon: { 
-    fontSize: 20 
+    fontSize: 22 
   },
   menuText: { 
     flex: 1, 
     color: COLORS.text, 
-    fontSize: 16,
+    fontSize: FONTS.lg,
     fontWeight: '500',
   },
   menuArrow: {
@@ -273,9 +347,9 @@ const styles = StyleSheet.create({
     fontWeight: '300' 
   },
   logoutBtn: { 
-    marginHorizontal: 20, 
-    marginTop: 8, 
-    borderRadius: SIZES.radius,
+    marginHorizontal: SPACING.lg, 
+    marginTop: SPACING.sm, 
+    borderRadius: RADIUS.lg,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: COLORS.error + '30',
@@ -284,37 +358,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    padding: SPACING.lg,
   },
   logoutIcon: {
     fontSize: 18,
-    marginRight: 8,
+    marginRight: SPACING.sm,
   },
   logoutText: { 
     color: COLORS.error, 
-    fontSize: 16, 
+    fontSize: FONTS.lg, 
     fontWeight: '600' 
   },
   footer: { 
     alignItems: 'center', 
-    marginTop: 30, 
-    marginBottom: 40 
+    marginTop: SPACING.xxxl, 
+    marginBottom: SPACING.xl 
   },
   footerText: { 
     color: COLORS.primary, 
-    fontSize: 16, 
+    fontSize: FONTS.lg, 
     fontWeight: '700',
     letterSpacing: 1,
   },
   version: { 
     color: COLORS.textMuted, 
-    fontSize: 12, 
-    marginTop: 8 
+    fontSize: FONTS.sm, 
+    marginTop: SPACING.sm 
   },
   copyright: { 
     color: COLORS.textMuted, 
-    fontSize: 11, 
-    marginTop: 4 
+    fontSize: FONTS.xs, 
+    marginTop: SPACING.xs 
   },
 });
 
