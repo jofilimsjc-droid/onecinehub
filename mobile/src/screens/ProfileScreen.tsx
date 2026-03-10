@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIn
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -66,9 +67,9 @@ export default function ProfileScreen({ navigation }: Props) {
   };
 
   const menuItems = [
-    { title: 'Notifications', screen: 'Notifications', icon: '🔔', color: COLORS.primary },
-    { title: 'Booking History', screen: 'History', icon: '🎟️', color: COLORS.gold },
-    { title: 'Favorites', screen: 'Favorites', icon: '❤️', color: COLORS.error },
+    { title: 'Notifications', screen: 'Notifications', icon: 'notifications', color: COLORS.primary },
+    { title: 'Booking History', screen: 'History', icon: 'confirmation-number', color: COLORS.gold },
+    { title: 'Favorites', screen: 'Favorites', icon: 'favorite', color: COLORS.error },
   ];
 
   return (
@@ -99,7 +100,8 @@ export default function ProfileScreen({ navigation }: Props) {
               <Text style={styles.username}>{user?.username || 'User'}</Text>
               <Text style={styles.email}>{user?.email || ''}</Text>
               <View style={styles.memberBadge}>
-                <Text style={styles.memberBadgeText}>🎬 Movie Enthusiast</Text>
+                <MaterialIcons name="movie" size={14} color={COLORS.primary} />
+                <Text style={styles.memberBadgeText}> Movie Enthusiast</Text>
               </View>
             </View>
           </View>
@@ -150,11 +152,11 @@ export default function ProfileScreen({ navigation }: Props) {
               activeOpacity={0.7}
             >
               <View style={[styles.menuIconContainer, { backgroundColor: item.color + '20' }]}>
-                <Text style={styles.menuIcon}>{item.icon}</Text>
+                <MaterialIcons name={item.icon as any} size={22} color={item.color} />
               </View>
               <Text style={styles.menuText}>{item.title}</Text>
               <View style={styles.menuArrow}>
-                <Text style={styles.arrowText}>›</Text>
+                <MaterialIcons name="chevron-right" size={24} color={COLORS.textMuted} />
               </View>
             </TouchableOpacity>
           ))}

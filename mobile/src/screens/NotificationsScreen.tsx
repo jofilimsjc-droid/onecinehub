@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getNotifications, markNotificationRead, markAllNotificationsRead } from '../api';
 import { useToast } from '../context/ToastContext';
@@ -91,12 +92,12 @@ export default function NotificationsScreen({ navigation }: Props) {
 
   const getNotificationIcon = (message: string) => {
     const lowerMessage = message.toLowerCase();
-    if (lowerMessage.includes('booking') || lowerMessage.includes('ticket')) return '🎟️';
-    if (lowerMessage.includes('favorite') || lowerMessage.includes('heart')) return '❤️';
-    if (lowerMessage.includes('movie') || lowerMessage.includes('film')) return '🎬';
-    if (lowerMessage.includes('offer') || lowerMessage.includes('discount')) return '🎁';
-    if (lowerMessage.includes('account') || lowerMessage.includes('profile')) return '👤';
-    return '🔔';
+    if (lowerMessage.includes('booking') || lowerMessage.includes('ticket')) return 'confirmation-number';
+    if (lowerMessage.includes('favorite') || lowerMessage.includes('heart')) return 'favorite';
+    if (lowerMessage.includes('movie') || lowerMessage.includes('film')) return 'movie';
+    if (lowerMessage.includes('offer') || lowerMessage.includes('discount')) return 'card-giftcard';
+    if (lowerMessage.includes('account') || lowerMessage.includes('profile')) return 'person';
+    return 'notifications';
   };
 
   const renderNotification = ({ item }: { item: Notification }) => (
@@ -123,7 +124,7 @@ export default function NotificationsScreen({ navigation }: Props) {
           styles.iconContainer,
           item.is_read === 0 && styles.iconContainerUnread
         ]}>
-          <Text style={styles.iconText}>{getNotificationIcon(item.message)}</Text>
+          <MaterialIcons name={getNotificationIcon(item.message) as any} size={24} color={item.is_read === 0 ? COLORS.primary : COLORS.textSecondary} />
         </View>
         <View style={styles.textContainer}>
           <Text style={[
@@ -149,7 +150,7 @@ export default function NotificationsScreen({ navigation }: Props) {
       <SafeAreaView style={[styles.container, styles.centered]}>
         <View style={styles.loadingContainer}>
           <View style={styles.loadingLogo}>
-            <Text style={styles.loadingEmoji}>🔔</Text>
+            <MaterialIcons name="notifications" size={48} color={COLORS.primary} />
           </View>
           <ActivityIndicator size="large" color={COLORS.primary} style={styles.loadingIndicator} />
           <Text style={styles.loadingText}>Loading notifications...</Text>
@@ -214,7 +215,7 @@ export default function NotificationsScreen({ navigation }: Props) {
               colors={GRADIENTS.card as any}
               style={styles.emptyIcon}
             >
-              <Text style={styles.emptyEmoji}>🔔</Text>
+              <MaterialIcons name="notifications" size={56} color={COLORS.primary} />
             </LinearGradient>
             <Text style={styles.emptyTitle}>No notifications</Text>
             <Text style={styles.emptyText}>

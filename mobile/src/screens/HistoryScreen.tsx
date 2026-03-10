@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, Image, ActivityIndicator, RefreshCont
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { checkAuth } from '../api';
 import { useToast } from '../context/ToastContext';
@@ -51,7 +52,7 @@ export default function HistoryScreen(_props: Props) {
       <SafeAreaView style={[styles.container, styles.centered]}>
         <View style={styles.loadingContainer}>
           <View style={styles.loadingLogo}>
-            <Text style={styles.loadingEmoji}>🎟️</Text>
+            <MaterialIcons name="confirmation-number" size={48} color={COLORS.gold} />
           </View>
           <ActivityIndicator size="large" color={COLORS.primary} style={styles.loadingIndicator} />
           <Text style={styles.loadingText}>Loading your bookings...</Text>
@@ -100,7 +101,7 @@ export default function HistoryScreen(_props: Props) {
               colors={GRADIENTS.card as any}
               style={styles.emptyIcon}
             >
-              <Text style={styles.emptyEmoji}>🎟️</Text>
+              <MaterialIcons name="confirmation-number" size={56} color={COLORS.gold} />
             </LinearGradient>
             <Text style={styles.emptyTitle}>No bookings yet</Text>
             <Text style={styles.emptyText}>
@@ -115,17 +116,17 @@ export default function HistoryScreen(_props: Props) {
               <Text style={styles.movieTitle} numberOfLines={2}>{item.movie.title}</Text>
               
               <View style={styles.detailRow}>
-                <Text style={styles.detailIcon}>📍</Text>
+                <MaterialIcons name="location-on" size={12} color={COLORS.textMuted} style={styles.detailIcon} />
                 <Text style={styles.detail}>{item.branch}</Text>
               </View>
               
               <View style={styles.detailRow}>
-                <Text style={styles.detailIcon}>📅</Text>
+                <MaterialIcons name="calendar-today" size={12} color={COLORS.textMuted} style={styles.detailIcon} />
                 <Text style={styles.detail}>{item.date} at {item.time}</Text>
               </View>
               
               <View style={styles.detailRow}>
-                <Text style={styles.detailIcon}>💺</Text>
+                <MaterialIcons name="event-seat" size={12} color={COLORS.textMuted} style={styles.detailIcon} />
                 <Text style={styles.detail}>Seats: {item.seats.join(', ')}</Text>
               </View>
               

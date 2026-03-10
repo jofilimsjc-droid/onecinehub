@@ -1,6 +1,10 @@
 import { Dimensions, Platform, StatusBar } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
+
+// Export MaterialIcons for use across the app
+export { MaterialIcons };
 
 // Responsive breakpoints
 export const BREAKPOINTS = {

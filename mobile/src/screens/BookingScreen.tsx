@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getCinemas, getSchedules, getOccupiedSeats, createBooking } from '../api';
 import { useToast } from '../context/ToastContext';
@@ -175,7 +176,7 @@ export default function BookingScreen({ route, navigation }: Props) {
       <SafeAreaView style={[styles.container, styles.centered]}>
         <View style={styles.loadingContainer}>
           <View style={styles.loadingLogo}>
-            <Text style={styles.loadingEmoji}>🎬</Text>
+            <MaterialIcons name="movie" size={48} color={COLORS.primary} />
           </View>
           <ActivityIndicator size="large" color={COLORS.primary} style={styles.loadingIndicator} />
           <Text style={styles.loadingText}>Loading booking options...</Text>
@@ -220,7 +221,7 @@ export default function BookingScreen({ route, navigation }: Props) {
             <Text style={styles.movieTitle}>{movie.title}</Text>
             {selected.cinema && (
               <Text style={styles.sub}>
-                📍 {selected.cinema} | 📅 {selected.date} | ⏰ {selected.time}
+                <MaterialIcons name="location-on" size={14} color={COLORS.textMuted} /> {selected.cinema} | <MaterialIcons name="calendar-today" size={14} color={COLORS.textMuted} /> {selected.date} | <MaterialIcons name="schedule" size={14} color={COLORS.textMuted} /> {selected.time}
               </Text>
             )}
           </View>
@@ -253,7 +254,7 @@ export default function BookingScreen({ route, navigation }: Props) {
               <Text style={styles.stepTitle}>Select Cinema</Text>
               {availableCinemas.length === 0 ? (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyIcon}>🏠</Text>
+                  <MaterialIcons name="home" size={48} color={COLORS.textMuted} />
                   <Text style={styles.emptyText}>No cinemas available for this movie</Text>
                 </View>
               ) : (
@@ -277,8 +278,8 @@ export default function BookingScreen({ route, navigation }: Props) {
                       />
                     )}
                     <View style={styles.cinemaContent}>
-                      <Text style={styles.cinemaName}>🏠 {c.name}</Text>
-                      <Text style={styles.cinemaLoc}>📍 {c.location}</Text>
+                      <Text style={styles.cinemaName}><MaterialIcons name="home" size={18} color={COLORS.text} /> {c.name}</Text>
+                      <Text style={styles.cinemaLoc}><MaterialIcons name="location-on" size={14} color={COLORS.textMuted} /> {c.location}</Text>
                     </View>
                     {selected.cinemaId === c.id && (
                       <View style={styles.cinemaCheck}>
@@ -355,7 +356,7 @@ export default function BookingScreen({ route, navigation }: Props) {
                           styles.timeText,
                           selected.time === t && styles.timeTextActive
                         ]}>
-                          ⏰ {t}
+                          <MaterialIcons name="schedule" size={14} color={selected.time === t ? COLORS.text : COLORS.textSecondary} /> {t}
                         </Text>
                       </TouchableOpacity>
                     ))}
@@ -485,32 +486,32 @@ export default function BookingScreen({ route, navigation }: Props) {
                   colors={GRADIENTS.primary as any}
                   style={styles.summaryHeader}
                 >
-                  <Text style={styles.summaryTitle}>📋 Booking Summary</Text>
+                  <Text style={styles.summaryTitle}><MaterialIcons name="assignment" size={18} color="#fff" /> Booking Summary</Text>
                 </LinearGradient>
                 <View style={styles.summaryContent}>
                   <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>🎬 Movie</Text>
+                    <Text style={styles.summaryLabel}><MaterialIcons name="movie" size={16} color={COLORS.textMuted} /> Movie</Text>
                     <Text style={styles.summaryValue}>{movie.title}</Text>
                   </View>
                   <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>🏠 Cinema</Text>
+                    <Text style={styles.summaryLabel}><MaterialIcons name="home" size={16} color={COLORS.textMuted} /> Cinema</Text>
                     <Text style={styles.summaryValue}>{selected.cinema}</Text>
                   </View>
                   <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>📅 Date</Text>
+                    <Text style={styles.summaryLabel}><MaterialIcons name="calendar-today" size={16} color={COLORS.textMuted} /> Date</Text>
                     <Text style={styles.summaryValue}>{selected.date}</Text>
                   </View>
                   <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>⏰ Time</Text>
+                    <Text style={styles.summaryLabel}><MaterialIcons name="schedule" size={16} color={COLORS.textMuted} /> Time</Text>
                     <Text style={styles.summaryValue}>{selected.time}</Text>
                   </View>
                   <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>💺 Seats</Text>
+                    <Text style={styles.summaryLabel}><MaterialIcons name="event-seat" size={16} color={COLORS.textMuted} /> Seats</Text>
                     <Text style={styles.summaryValue}>{selected.seats.slice().sort().join(', ')}</Text>
                   </View>
                   <View style={styles.summaryDivider} />
                   <View style={styles.summaryRow}>
-                    <Text style={styles.totalLabel}>💰 Total Amount</Text>
+                    <Text style={styles.totalLabel}><MaterialIcons name="payments" size={18} color={COLORS.primary} /> Total Amount</Text>
                     <Text style={styles.totalValue}>Php{totalPrice.toFixed(2)}</Text>
                   </View>
                 </View>
@@ -535,9 +536,12 @@ export default function BookingScreen({ route, navigation }: Props) {
                         style={styles.paymentBtnGradient}
                       />
                     )}
-                    <Text style={styles.paymentIcon}>
-                      {method === 'GCash' ? '📱' : method === 'PayMaya' ? '💳' : '💰'}
-                    </Text>
+                    <MaterialIcons 
+                      name={method === 'GCash' ? 'phone-android' : method === 'PayMaya' ? 'credit-card' : 'credit-card'} 
+                      size={22} 
+                      color={selected.paymentMethod === method ? COLORS.text : COLORS.textSecondary}
+                      style={styles.paymentIcon} 
+                    />
                     <Text style={[
                       styles.paymentName,
                       selected.paymentMethod === method && styles.paymentNameActive
@@ -595,7 +599,7 @@ export default function BookingScreen({ route, navigation }: Props) {
                   colors={GRADIENTS.success as any}
                   style={styles.successIcon}
                 >
-                  <Text style={styles.successEmoji}>✓</Text>
+                  <MaterialIcons name="check" size={48} color="#fff" />
                 </LinearGradient>
                 <Text style={styles.successTitle}>Booking Confirmed!</Text>
                 <Text style={styles.successSubtitle}>Your e-ticket is ready</Text>
@@ -603,25 +607,25 @@ export default function BookingScreen({ route, navigation }: Props) {
 
               <View style={styles.ticketCard}>
                 <View style={styles.ticketHeader}>
-                  <Text style={styles.ticketMovie}>🎬 {movie.title}</Text>
-                  <Text style={styles.ticketCinema}>🏠 {selected.cinema}</Text>
+                  <Text style={styles.ticketMovie}><MaterialIcons name="movie" size={18} color={COLORS.primary} /> {movie.title}</Text>
+                  <Text style={styles.ticketCinema}><MaterialIcons name="home" size={16} color={COLORS.textSecondary} /> {selected.cinema}</Text>
                 </View>
                 <View style={styles.ticketDetails}>
                   <View style={styles.ticketDetailRow}>
-                    <Text style={styles.ticketDetailLabel}>📅 Date:</Text>
+                    <Text style={styles.ticketDetailLabel}><MaterialIcons name="calendar-today" size={14} color={COLORS.textMuted} /> Date:</Text>
                     <Text style={styles.ticketDetailValue}>{selected.date}</Text>
                   </View>
                   <View style={styles.ticketDetailRow}>
-                    <Text style={styles.ticketDetailLabel}>⏰ Time:</Text>
+                    <Text style={styles.ticketDetailLabel}><MaterialIcons name="schedule" size={14} color={COLORS.textMuted} /> Time:</Text>
                     <Text style={styles.ticketDetailValue}>{selected.time}</Text>
                   </View>
                   <View style={styles.ticketDetailRow}>
-                    <Text style={styles.ticketDetailLabel}>💺 Seats:</Text>
+                    <Text style={styles.ticketDetailLabel}><MaterialIcons name="event-seat" size={14} color={COLORS.textMuted} /> Seats:</Text>
                     <Text style={styles.ticketDetailValue}>{selected.seats.slice().sort().join(', ')}</Text>
                   </View>
                 </View>
                 <View style={styles.ticketTotal}>
-                  <Text style={styles.ticketTotalLabel}>💰 Total Paid</Text>
+                  <Text style={styles.ticketTotalLabel}><MaterialIcons name="payments" size={18} color={COLORS.primary} /> Total Paid</Text>
                   <Text style={styles.ticketTotalValue}>Php{totalPrice.toFixed(2)}</Text>
                 </View>
               </View>

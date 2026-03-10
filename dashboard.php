@@ -429,9 +429,9 @@ $allGenres = $stmt->fetchAll(PDO::FETCH_COLUMN);
                             <h3 class="font-bold text-xl mb-2">Premium Seats</h3>
                             <p class="text-gray-400 mb-4">Comfort redefined</p>
                             <div class="flex flex-wrap justify-center gap-2 text-xs">
-                                <span class="px-2 py-1 bg-red-500/20 rounded">🛋️ Recliners</span>
-                                <span class="px-2 py-1 bg-red-500/20 rounded">📏 Extra Legroom</span>
-                                <span class="px-2 py-1 bg-red-500/20 rounded">🎮 VIP Lounge</span>
+                                <span class="px-2 py-1 bg-red-500/20 rounded"><i class="fas fa-couch mr-1"></i> Recliners</span>
+                                <span class="px-2 py-1 bg-red-500/20 rounded"><i class="fas fa-ruler-horizontal mr-1"></i> Extra Legroom</span>
+                                <span class="px-2 py-1 bg-red-500/20 rounded"><i class="fas fa-gamepad mr-1"></i> VIP Lounge</span>
                             </div>
                             <div class="card-arrow">
                                 <i class="fas fa-arrow-right"></i>

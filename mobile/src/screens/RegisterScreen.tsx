@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -99,7 +100,7 @@ export default function RegisterScreen({ navigation }: Props) {
     value: string,
     setValue: (text: string) => void,
     placeholder: string,
-    icon: string,
+    iconName: string,
     isPassword: boolean = false,
     showPasswordToggle?: boolean,
     onTogglePress?: () => void,
@@ -109,7 +110,7 @@ export default function RegisterScreen({ navigation }: Props) {
       styles.inputContainer,
       focusedInput === placeholder && styles.inputContainerFocused
     ]}>
-      <Text style={styles.inputIcon}>{icon}</Text>
+      <MaterialIcons name={iconName as any} size={18} color={COLORS.textMuted} style={styles.inputIcon} />
       <TextInput
         style={styles.input}
         placeholder={placeholder}
@@ -127,7 +128,11 @@ export default function RegisterScreen({ navigation }: Props) {
           style={styles.eyeButton} 
           onPress={onTogglePress}
         >
-          <Text style={styles.eyeText}>{showPasswordToggle ? '👁️' : '👁️‍🗨️'}</Text>
+          <MaterialIcons 
+            name={showPasswordToggle ? "visibility" : "visibility-off"} 
+            size={18} 
+            color={COLORS.textMuted} 
+          />
         </TouchableOpacity>
       )}
     </View>
@@ -156,7 +161,7 @@ export default function RegisterScreen({ navigation }: Props) {
                   end={{ x: 1, y: 1 }}
                   style={styles.logoGradient}
                 >
-                  <Text style={styles.logoText}>🎬</Text>
+                  <MaterialIcons name="movie" size={36} color="#fff" />
                 </LinearGradient>
               </View>
               <Text style={styles.logo}>ONECINEHUB</Text>
@@ -168,15 +173,15 @@ export default function RegisterScreen({ navigation }: Props) {
               <Text style={styles.subtitle}>Join us for an amazing movie experience</Text>
             </View>
 
-            {renderInput(username, setUsername, 'Username', '👤')}
-            {renderInput(email, setEmail, 'example@gmail.com', '✉️', false, false, undefined, 'email-address')}
+            {renderInput(username, setUsername, 'Username', 'person')}
+            {renderInput(email, setEmail, 'example@gmail.com', 'email', false, false, undefined, 'email-address')}
             
             <View>
               {renderInput(
                 password, 
                 setPassword, 
                 'Password (min 8 characters)', 
-                '🔒', 
+                'lock', 
                 true, 
                 showPassword, 
                 () => setShowPassword(!showPassword)
@@ -224,7 +229,7 @@ export default function RegisterScreen({ navigation }: Props) {
               confirmPassword, 
               setConfirmPassword, 
               'Confirm Password', 
-              '🔐', 
+              'lock', 
               true, 
               showConfirmPassword, 
               () => setShowConfirmPassword(!showConfirmPassword)

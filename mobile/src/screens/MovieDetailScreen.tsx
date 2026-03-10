@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
+import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { toggleFavorite } from '../api';
 import { useToast } from '../context/ToastContext';
@@ -102,7 +103,10 @@ export default function MovieDetailScreen({ route, navigation }: Props) {
               end={{ x: 1, y: 0 }}
               style={styles.ratingGradient}
             >
-              <Text style={styles.ratingText}>⭐ {movie.rating}</Text>
+              <View style={styles.ratingRow}>
+                <MaterialIcons name="star" size={16} color="#fff" />
+                <Text style={styles.ratingText}> {movie.rating}</Text>
+              </View>
             </LinearGradient>
           </View>
         </View>
@@ -118,16 +122,26 @@ export default function MovieDetailScreen({ route, navigation }: Props) {
               {loading ? (
                 <ActivityIndicator size="small" color={COLORS.primary} />
               ) : (
-                <Text style={styles.favoriteIcon}>{favorited ? '❤️' : '🤍'}</Text>
+                <MaterialIcons 
+                  name={favorited ? "favorite" : "favorite-border"} 
+                  size={20} 
+                  color={favorited ? COLORS.error : COLORS.text} 
+                />
               )}
             </TouchableOpacity>
             <Text style={styles.title}>{movie.title}</Text>
           </View>
           
           <View style={styles.metaRow}>
-            <Text style={styles.metaText}>🎬 {movie.genre}</Text>
+            <View style={styles.metaItem}>
+              <MaterialIcons name="movie" size={14} color={COLORS.textSecondary} />
+              <Text style={styles.metaText}> {movie.genre}</Text>
+            </View>
             <View style={styles.metaDivider} />
-            <Text style={styles.metaText}>⏱️ {movie.duration}</Text>
+            <View style={styles.metaItem}>
+              <MaterialIcons name="schedule" size={14} color={COLORS.textSecondary} />
+              <Text style={styles.metaText}> {movie.duration}</Text>
+            </View>
           </View>
 
           <View style={styles.statusContainer}>
@@ -171,7 +185,8 @@ export default function MovieDetailScreen({ route, navigation }: Props) {
                 onPress={() => navigation.navigate('Booking', { movie })}
                 activeOpacity={0.8}
               >
-                <Text style={styles.primaryBtnText}>🎟️ Get Tickets</Text>
+                <MaterialIcons name="confirmation-number" size={18} color={COLORS.text} />
+                <Text style={styles.primaryBtnText}> Get Tickets</Text>
               </TouchableOpacity>
             </LinearGradient>
 
@@ -181,7 +196,8 @@ export default function MovieDetailScreen({ route, navigation }: Props) {
                 onPress={() => openTrailer(trailerUrl)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.secondaryBtnText}>▶️ Watch Trailer</Text>
+                <MaterialIcons name="play-arrow" size={18} color={COLORS.text} />
+                <Text style={styles.secondaryBtnText}> Watch Trailer</Text>
               </TouchableOpacity>
             ) : null}
           </View>

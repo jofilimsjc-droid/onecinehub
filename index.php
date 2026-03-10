@@ -35,7 +35,7 @@ if ($registrationSuccess) {
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
                 showNotification(
-                    '🎉 Registration Successful!',
+                    '<i class="fas fa-check-circle"></i> Registration Successful!',
                     'Your account has been created successfully. You can now sign in with your credentials.',
                     'success',
                     8000
@@ -44,7 +44,7 @@ if ($registrationSuccess) {
                 // Also show a second notification with tips after 1 second
                 setTimeout(function() {
                     showNotification(
-                        '💡 Quick Tip',
+                        '<i class="fas fa-lightbulb"></i> Quick Tip',
                         'You can now sign in and start booking your favorite movies!',
                         'info',
                         6000
@@ -73,7 +73,7 @@ if ($registrationError) {
     echo "<script>
         document.addEventListener('DOMContentLoaded', function() {
             showNotification(
-                '❌ Registration Failed',
+'&#10060; Registration Failed',
                 '$errorMessage',
                 'error',
                 7000
@@ -1254,7 +1254,7 @@ if ($registrationError) {
             // Validate username
             if (!/^[a-zA-Z0-9_]+$/.test(username) || username.length < 3 || username.length > 50) {
                 showNotification(
-                    '❌ Invalid Username',
+                    '<i class="fas fa-exclamation-circle"></i> Invalid Username',
                     'Please enter a valid username (3-50 characters, letters, numbers, and underscores only)',
                     'error'
                 );
@@ -1264,7 +1264,7 @@ if ($registrationError) {
             // Validate email
             if (!email.toLowerCase().endsWith('@gmail.com')) {
                 showNotification(
-                    '❌ Invalid Email',
+                    '<i class="fas fa-exclamation-circle"></i> Invalid Email',
                     'Please use a valid Gmail address',
                     'error'
                 );
@@ -1274,7 +1274,7 @@ if ($registrationError) {
             // Validate password
             if (password.length < 8) {
                 showNotification(
-                    '❌ Weak Password',
+                    '<i class="fas fa-exclamation-circle"></i> Weak Password',
                     'Password must be at least 8 characters long',
                     'error'
                 );
@@ -1283,7 +1283,7 @@ if ($registrationError) {
             
             if (!/[A-Z]/.test(password)) {
                 showNotification(
-                    '❌ Weak Password',
+                    '<i class="fas fa-exclamation-circle"></i> Weak Password',
                     'Password must contain at least one uppercase letter',
                     'error'
                 );
@@ -1292,7 +1292,7 @@ if ($registrationError) {
             
             if (!/[a-z]/.test(password)) {
                 showNotification(
-                    '❌ Weak Password',
+                    '<i class="fas fa-exclamation-circle"></i> Weak Password',
                     'Password must contain at least one lowercase letter',
                     'error'
                 );
@@ -1301,7 +1301,7 @@ if ($registrationError) {
             
             if (!/[0-9]/.test(password)) {
                 showNotification(
-                    '❌ Weak Password',
+                    '<i class="fas fa-exclamation-circle"></i> Weak Password',
                     'Password must contain at least one number',
                     'error'
                 );
@@ -1310,7 +1310,7 @@ if ($registrationError) {
             
             if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
                 showNotification(
-                    '❌ Weak Password',
+                    '<i class="fas fa-exclamation-circle"></i> Weak Password',
                     'Password must contain at least one special character',
                     'error'
                 );
@@ -1320,7 +1320,7 @@ if ($registrationError) {
             // Validate password match
             if (password !== confirmPassword) {
                 showNotification(
-                    '❌ Password Mismatch',
+                    '<i class="fas fa-exclamation-circle"></i> Password Mismatch',
                     'Passwords do not match',
                     'error'
                 );
@@ -1330,7 +1330,7 @@ if ($registrationError) {
             // Validate terms
             if (!terms) {
                 showNotification(
-                    '❌ Terms Required',
+                    '<i class="fas fa-exclamation-circle"></i> Terms Required',
                     'You must agree to the Terms of Service and Privacy Policy',
                     'error'
                 );

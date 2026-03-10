@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -74,7 +75,7 @@ export default function LoginScreen({ navigation }: Props) {
                   end={{ x: 1, y: 1 }}
                   style={styles.logoGradient}
                 >
-                  <Text style={styles.logoText}>🎬</Text>
+                  <MaterialIcons name="movie" size={40} color="#fff" />
                 </LinearGradient>
               </View>
               <Text style={styles.logo}>ONECINEHUB</Text>
@@ -90,7 +91,7 @@ export default function LoginScreen({ navigation }: Props) {
               styles.inputContainer,
               emailFocused && styles.inputContainerFocused
             ]}>
-              <Text style={styles.inputIcon}>✉️</Text>
+              <MaterialIcons name="email" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="Email or Username"
@@ -109,7 +110,7 @@ export default function LoginScreen({ navigation }: Props) {
               styles.inputContainer,
               passwordFocused && styles.inputContainerFocused
             ]}>
-              <Text style={styles.inputIcon}>🔒</Text>
+              <MaterialIcons name="lock" size={18} color={COLORS.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="Password"
@@ -124,7 +125,11 @@ export default function LoginScreen({ navigation }: Props) {
                 style={styles.eyeButton} 
                 onPress={() => setShowPassword(!showPassword)}
               >
-                <Text style={styles.eyeText}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                <MaterialIcons 
+                  name={showPassword ? "visibility" : "visibility-off"} 
+                  size={18} 
+                  color={COLORS.textMuted} 
+                />
               </TouchableOpacity>
             </View>
 

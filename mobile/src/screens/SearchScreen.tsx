@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getMovies } from '../api';
 import type { Movie } from '../types/api';
@@ -96,7 +97,7 @@ export default function SearchScreen({ navigation }: Props) {
       <SafeAreaView style={[styles.container, styles.centered]}>
         <View style={styles.loadingContainer}>
           <View style={styles.loadingLogo}>
-            <Text style={styles.loadingEmoji}>🔍</Text>
+            <MaterialIcons name="search" size={48} color={COLORS.primary} />
           </View>
           <ActivityIndicator size="large" color={COLORS.primary} style={styles.loadingIndicator} />
           <Text style={styles.loadingText}>Loading movies...</Text>
@@ -123,7 +124,7 @@ export default function SearchScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.searchContainer}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <MaterialIcons name="search" size={18} color={COLORS.textMuted} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search by title or genre..."
@@ -139,7 +140,7 @@ export default function SearchScreen({ navigation }: Props) {
             onPress={() => setSearchQuery('')}
             activeOpacity={0.7}
           >
-            <Text style={styles.clearText}>✕</Text>
+            <MaterialIcons name="close" size={20} color={COLORS.textMuted} />
           </TouchableOpacity>
         )}
       </View>
@@ -160,7 +161,7 @@ export default function SearchScreen({ navigation }: Props) {
         ListEmptyComponent={
           <View style={styles.empty}>
             <View style={styles.emptyIcon}>
-              <Text style={styles.emptyEmoji}>🔍</Text>
+              <MaterialIcons name="search" size={56} color={COLORS.textMuted} />
             </View>
             <Text style={styles.emptyTitle}>No movies found</Text>
             <Text style={styles.emptyText}>

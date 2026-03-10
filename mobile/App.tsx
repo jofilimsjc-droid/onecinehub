@@ -5,6 +5,7 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ToastProvider } from './src/context/ToastContext';
 import { COLORS, SHADOWS, SIZES, DEVICE, GRADIENTS, FONTS, RADIUS, SPACING } from './src/theme';
@@ -96,9 +97,11 @@ function MainTabs() {
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({ focused, color, size }: TabIconProps) => (
-            <Text style={{ fontSize: size - 4, color }}>
-              {focused ? '🏠' : '🏡'}
-            </Text>
+            <Ionicons 
+              name={focused ? 'home' : 'home-outline'} 
+              size={size} 
+              color={color} 
+            />
           ),
         }}
       />
@@ -108,9 +111,11 @@ function MainTabs() {
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ focused, color, size }: TabIconProps) => (
-            <Text style={{ fontSize: size - 4, color }}>
-              {focused ? '👤' : '👤'}
-            </Text>
+            <Ionicons 
+              name={focused ? 'person' : 'person-outline'} 
+              size={size} 
+              color={color} 
+            />
           ),
         }}
       />
@@ -171,7 +176,7 @@ function RootNavigator() {
       <View style={styles.loading}>
         <View style={styles.loadingInner}>
           <View style={styles.loadingLogo}>
-            <Text style={styles.loadingLogoText}>🎬</Text>
+            <MaterialCommunityIcons name="film" size={48} color={COLORS.primary} />
           </View>
           <ActivityIndicator size="large" color={COLORS.primary} style={styles.loadingIndicator} />
           <Text style={styles.loadingText}>Loading...</Text>

@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -181,7 +182,7 @@ export default function HomeScreen({ navigation }: Props) {
       <SafeAreaView style={[styles.container, styles.centered]}>
         <View style={styles.loadingContainer}>
           <View style={styles.loadingLogo}>
-            <Text style={styles.loadingEmoji}>🎬</Text>
+            <MaterialIcons name="movie" size={48} color={COLORS.primary} />
           </View>
           <ActivityIndicator size="large" color={COLORS.primary} style={styles.loadingIndicator} />
           <Text style={styles.loadingText}>Loading movies...</Text>
@@ -203,7 +204,7 @@ export default function HomeScreen({ navigation }: Props) {
             onPress={() => navigation.navigate('Search')}
             activeOpacity={0.7}
           >
-            <Text style={styles.searchIcon}>🔍</Text>
+            <MaterialIcons name="search" size={20} color={COLORS.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -233,7 +234,8 @@ export default function HomeScreen({ navigation }: Props) {
           onPress={() => setShowGenreModal(true)}
           activeOpacity={0.7}
         >
-          <Text style={styles.genreButtonText}>🎬 {selectedGenre}</Text>
+          <MaterialIcons name="movie" size={16} color={COLORS.text} />
+          <Text style={styles.genreButtonText}> {selectedGenre}</Text>
         </TouchableOpacity>
       </View>
 
@@ -315,7 +317,7 @@ export default function HomeScreen({ navigation }: Props) {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🎬</Text>
+            <MaterialIcons name="movie" size={48} color={COLORS.textMuted} />
             <Text style={styles.emptyText}>
               {tab === 'nowShowing' ? 'No movies currently showing' : 'No upcoming movies'}
             </Text>

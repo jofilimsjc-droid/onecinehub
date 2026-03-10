@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Text, StyleSheet, Dimensions } from 'react-native';
+import { Animated, View, Text, StyleSheet, Dimensions } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
@@ -56,7 +57,7 @@ export function Toast({ visible, message, type, onHide, duration = 3000 }: Toast
 
   // Friendly colors and icons
   const backgroundColor = type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#3b82f6';
-  const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+  const iconName = type === 'success' ? 'check-circle' : type === 'error' ? 'cancel' : 'info';
 
   return (
     <Animated.View
@@ -69,7 +70,7 @@ export function Toast({ visible, message, type, onHide, duration = 3000 }: Toast
         },
       ]}
     >
-      <Text style={styles.icon}>{icon}</Text>
+      <MaterialIcons name={iconName as any} size={22} color="#fff" style={styles.icon} />
       <Text style={styles.message} numberOfLines={2}>{message}</Text>
     </Animated.View>
   );
