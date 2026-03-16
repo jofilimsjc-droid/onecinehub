@@ -77,7 +77,7 @@ export default function LoginScreen({ navigation }: Props) {
                   style={styles.logoGradient}
                 >
                   <Image
-                    source={require('../../logo.png')}
+                    source={require('../../assets/logo.png')}
                     style={styles.logoImage}
                     resizeMode="contain"
                   />

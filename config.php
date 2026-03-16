@@ -6,7 +6,12 @@ define('DB_PASS', '');
 define('DB_NAME', 'onecinehub');
 
 // Application settings
-define('SITE_URL', 'http://192.168.1.232/onecinehub');
+if (!defined('SITE_URL')) {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    define('SITE_URL', $scheme . '://' . $host . '/onecinehub');
+}
+
 define('SESSION_TIMEOUT', 3600); // 1 hour
 
 // Start session

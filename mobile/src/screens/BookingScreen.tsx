@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -58,6 +59,7 @@ export default function BookingScreen({ route, navigation }: Props) {
   const [occupiedSeats, setOccupiedSeats] = useState<string[]>([]);
   const [loadingSeats, setLoadingSeats] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [txNumber, setTxNumber] = useState<string | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -160,6 +162,7 @@ export default function BookingScreen({ route, navigation }: Props) {
 
       if (res.ok && res.data?.success && res.data.tx_number) {
         showToast('Booking confirmed!', 'success');
+        setTxNumber(res.data.tx_number);
         setStep(5);
       } else {
         showToast(res.data?.message || 'Booking failed. Please try again.', 'error');
@@ -559,6 +562,12 @@ export default function BookingScreen({ route, navigation }: Props) {
 
               {selected.paymentMethod && (
                 <View style={styles.paymentInputContainer}>
+                  {selected.paymentMethod === 'GCash' ? (
+                    <View style={styles.gcashQrBox}>
+                      <Image source={require('../../assets/gcash-qr.png')} style={styles.gcashQr} />
+                      <Text style={styles.gcashQrHint}>Scan this QR in GCash to pay.</Text>
+                    </View>
+                  ) : null}
                   <Text style={styles.paymentInputLabel}>
                     {selected.paymentMethod === 'Credit Card' ? 'Card Number' : `${selected.paymentMethod} Number`}
                   </Text>
@@ -583,7 +592,11 @@ export default function BookingScreen({ route, navigation }: Props) {
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={selected.paymentMethod && selected.paymentNumber.length >= 5 ? GRADIENTS.primary : ['#444', '#333'] as any}
+                  colors={
+                    selected.paymentMethod && selected.paymentNumber.length >= 5
+                      ? GRADIENTS.primary
+                      : (['#444', '#333'] as any)
+                  }
                   style={styles.confirmBtnGradient}
                 >
                   <Text style={styles.confirmText}>Confirm Booking - Php{totalPrice.toFixed(2)}</Text>
@@ -609,6 +622,9 @@ export default function BookingScreen({ route, navigation }: Props) {
                 <View style={styles.ticketHeader}>
                   <Text style={styles.ticketMovie}><MaterialIcons name="movie" size={18} color={COLORS.primary} /> {movie.title}</Text>
                   <Text style={styles.ticketCinema}><MaterialIcons name="home" size={16} color={COLORS.textSecondary} /> {selected.cinema}</Text>
+                  {txNumber ? (
+                    <Text style={styles.ticketTx}><MaterialIcons name="confirmation-number" size={16} color={COLORS.textSecondary} /> {txNumber}</Text>
+                  ) : null}
                 </View>
                 <View style={styles.ticketDetails}>
                   <View style={styles.ticketDetailRow}>
@@ -935,7 +951,8 @@ const styles = StyleSheet.create({
   timeGrid: { 
     flexDirection: 'row', 
     flexWrap: 'wrap', 
-    gap: SPACING.md 
+    marginRight: -SPACING.md,
+    marginBottom: -SPACING.md,
   },
   timeBtn: { 
     paddingVertical: SPACING.md, 
@@ -946,6 +963,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent', 
     position: 'relative', 
     overflow: 'hidden', 
+    marginRight: SPACING.md,
+    marginBottom: SPACING.md,
     ...SHADOWS.small 
   },
   timeBtnActive: { 
@@ -1040,14 +1059,13 @@ const styles = StyleSheet.create({
   legend: { 
     flexDirection: 'row', 
     justifyContent: 'center', 
-    gap: SPACING.xl, 
     marginTop: SPACING.xl, 
     marginBottom: SPACING.md 
   },
   legendItem: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    gap: SPACING.sm 
+    marginHorizontal: SPACING.lg,
   },
   legendSeat: { 
     width: 20, 
@@ -1216,6 +1234,32 @@ const styles = StyleSheet.create({
     marginTop: SPACING.lg, 
     marginBottom: SPACING.lg 
   },
+  gcashQrBox: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceLighter,
+    marginBottom: SPACING.lg,
+    alignItems: 'center',
+    maxWidth: 420,
+    width: '100%',
+    alignSelf: 'center',
+    ...SHADOWS.small,
+  },
+  gcashQr: {
+    width: '100%',
+    height: 240,
+    resizeMode: 'contain',
+    backgroundColor: '#fff',
+    borderRadius: RADIUS.lg,
+  },
+  gcashQrHint: {
+    marginTop: SPACING.md,
+    color: COLORS.textMuted,
+    fontSize: FONTS.sm,
+    textAlign: 'center',
+  },
   paymentInputLabel: { 
     color: COLORS.textSecondary, 
     fontSize: FONTS.md, 
@@ -1296,6 +1340,11 @@ const styles = StyleSheet.create({
   ticketCinema: { 
     color: COLORS.textSecondary, 
     fontSize: FONTS.md 
+  },
+  ticketTx: {
+    marginTop: SPACING.sm,
+    color: COLORS.textSecondary,
+    fontSize: FONTS.md,
   },
   ticketDetails: { 
     padding: SPACING.xl 

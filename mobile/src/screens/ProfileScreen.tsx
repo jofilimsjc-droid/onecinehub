@@ -81,7 +81,7 @@ export default function ProfileScreen({ navigation }: Props) {
           <View style={styles.headerTop}>
             <View style={styles.headerLogoWrapper}>
               <Image
-                source={require('../../logo.png')}
+                source={require('../../assets/logo.png')}
                 style={styles.headerLogoImage}
                 resizeMode="contain"
               />

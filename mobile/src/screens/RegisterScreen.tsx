@@ -166,7 +166,7 @@ export default function RegisterScreen({ navigation }: Props) {
                       1. Mag-save ng file, halimbawa: mobile/assets/logo.png
                       2. Palitan ang path sa require() kung iba ang location. */}
                   <Image
-                    source={require('../../logo.png')}
+                    source={require('../../assets/logo.png')}
                     style={styles.logoImage}
                     resizeMode="contain"
                   />

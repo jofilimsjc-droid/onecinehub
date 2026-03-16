@@ -512,11 +512,23 @@ function handleCreateBooking($input, $currentUser) {
     if (!$movieId || !$date || !$time || empty($seats)) {
         jsonResponse(['success' => false, 'message' => 'Missing required booking information'], 400);
     }
-    
+
     // Generate transaction number
     $txNumber = 'OHC-' . time() . rand(100, 999);
     
     try {
+        // Ensure occupied_seats table exists for seat locking/availability.
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS occupied_seats (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                schedule_key VARCHAR(255) NOT NULL,
+                seat_id VARCHAR(20) NOT NULL,
+                booking_id INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_schedule_seat (schedule_key, seat_id)
+            )
+        ");
+
         $pdo->beginTransaction();
         
         // Create booking
@@ -569,7 +581,9 @@ function handleCreateBooking($input, $currentUser) {
         ]);
         
     } catch (Exception $e) {
-        $pdo->rollback();
+        if ($pdo->inTransaction()) {
+            $pdo->rollback();
+        }
         jsonResponse(['success' => false, 'message' => $e->getMessage()], 500);
     }
 }
@@ -588,6 +602,18 @@ function handleGetOccupiedSeats($input) {
     }
     
     $scheduleKey = "{$movieId}_{$branch}_{$date}_{$time}";
+
+    // Ensure occupied_seats table exists.
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS occupied_seats (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            schedule_key VARCHAR(255) NOT NULL,
+            seat_id VARCHAR(20) NOT NULL,
+            booking_id INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uniq_schedule_seat (schedule_key, seat_id)
+        )
+    ");
     
     $stmt = $pdo->prepare("SELECT seat_id FROM occupied_seats WHERE schedule_key = ?");
     $stmt->execute([$scheduleKey]);
