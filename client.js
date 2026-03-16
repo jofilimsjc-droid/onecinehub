@@ -288,6 +288,11 @@ document.addEventListener("DOMContentLoaded", () => {
   setupGuestView()
   setupScrollHeader()
 
+  // Initialize titles for any password toggle buttons if present
+  document.querySelectorAll(".password-toggle").forEach((btn) => {
+    btn.setAttribute("title", "Show password")
+  })
+
   document.getElementById("showNowShowing").addEventListener("click", () => {
     document.getElementById("showNowShowing").classList.add("active")
     document.getElementById("showComingSoon").classList.remove("active")
@@ -307,6 +312,28 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("login-form").addEventListener("submit", handleLogin)
   document.getElementById("register-form").addEventListener("submit", handleRegister)
 })
+
+function togglePassword(inputId, toggleBtn) {
+  const input = document.getElementById(inputId)
+  if (!input || !toggleBtn) return
+
+  const icon = toggleBtn.querySelector("i")
+  const isHidden = input.type === "password"
+
+  input.type = isHidden ? "text" : "password"
+
+  if (icon) {
+    if (isHidden) {
+      icon.classList.remove("fa-eye-slash")
+      icon.classList.add("fa-eye")
+    } else {
+      icon.classList.remove("fa-eye")
+      icon.classList.add("fa-eye-slash")
+    }
+  }
+
+  toggleBtn.setAttribute("title", isHidden ? "Hide password" : "Show password")
+}
 
 async function handleLogin(e) {
   e.preventDefault()
@@ -1560,21 +1587,36 @@ function renderSettingsView() {
                     <div class="space-y-6 mb-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
-                            <input type="password" id="current-password" 
-                                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
-                                required>
+                            <div class="password-container">
+                                <input type="password" id="current-password" 
+                                    class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
+                                    required>
+                                <button type="button" class="password-toggle" onclick="togglePassword('current-password', this)" aria-label="Show or hide current password">
+                                    <i class="fa-regular fa-eye-slash"></i>
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
-                            <input type="password" id="new-password" 
-                                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
-                                required minlength="8">
+                            <div class="password-container">
+                                <input type="password" id="new-password" 
+                                    class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
+                                    required minlength="8">
+                                <button type="button" class="password-toggle" onclick="togglePassword('new-password', this)" aria-label="Show or hide new password">
+                                    <i class="fa-regular fa-eye-slash"></i>
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
-                            <input type="password" id="confirm-password" 
-                                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
-                                required>
+                            <div class="password-container">
+                                <input type="password" id="confirm-password" 
+                                    class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
+                                    required>
+                                <button type="button" class="password-toggle" onclick="togglePassword('confirm-password', this)" aria-label="Show or hide confirm password">
+                                    <i class="fa-regular fa-eye-slash"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <button type="submit" class="action-btn">

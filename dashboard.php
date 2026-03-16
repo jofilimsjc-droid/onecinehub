@@ -134,6 +134,34 @@ $allGenres = $stmt->fetchAll(PDO::FETCH_COLUMN);
             color: #E50914;
             z-index: 5;
         }
+
+        /* Password input with show/hide toggle */
+        .password-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-container input[type="password"],
+        .password-container input[type="text"] {
+            width: 100%;
+            padding-right: 2.75rem;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #9ca3af;
+            background: transparent;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .password-toggle:hover {
+            color: #f97316;
+        }
         
         /* Home page card styles */
         .feature-card {
@@ -1050,21 +1078,36 @@ doc.save(`ONECINEHUB-Ticket-${txNumber}.pdf`);
                             <div class="space-y-6 mb-6">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
-                                    <input type="password" id="current-password" 
-                                        class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
-                                        required>
+                                    <div class="password-container">
+                                        <input type="password" id="current-password" 
+                                            class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
+                                            required>
+                                        <button type="button" class="password-toggle" onclick="togglePassword('current-password', this)" aria-label="Show or hide current password">
+                                            <i class="fa-regular fa-eye-slash"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
-                                    <input type="password" id="new-password" 
-                                        class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
-                                        required minlength="8">
+                                    <div class="password-container">
+                                        <input type="password" id="new-password" 
+                                            class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
+                                            required minlength="8">
+                                        <button type="button" class="password-toggle" onclick="togglePassword('new-password', this)" aria-label="Show or hide new password">
+                                            <i class="fa-regular fa-eye-slash"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
-                                    <input type="password" id="confirm-password" 
-                                        class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
-                                        required>
+                                    <div class="password-container">
+                                        <input type="password" id="confirm-password" 
+                                            class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
+                                            required>
+                                        <button type="button" class="password-toggle" onclick="togglePassword('confirm-password', this)" aria-label="Show or hide confirm password">
+                                            <i class="fa-regular fa-eye-slash"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <button type="submit" class="action-btn">
@@ -1114,6 +1157,26 @@ doc.save(`ONECINEHUB-Ticket-${txNumber}.pdf`);
                 }, 5000);
             } catch (error) {
                 console.error('Error updating profile:', error);
+            }
+        }
+        
+        function togglePassword(inputId, toggleBtn) {
+            const input = document.getElementById(inputId);
+            if (!input || !toggleBtn) return;
+
+            const icon = toggleBtn.querySelector('i');
+            const isHidden = input.type === 'password';
+
+            input.type = isHidden ? 'text' : 'password';
+
+            if (icon) {
+                if (isHidden) {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                } else {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
             }
         }
         

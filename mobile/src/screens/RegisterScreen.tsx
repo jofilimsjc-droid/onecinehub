@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Text,
   TextInput,
@@ -102,7 +102,7 @@ export default function RegisterScreen({ navigation }: Props) {
     placeholder: string,
     iconName: string,
     isPassword: boolean = false,
-    showPasswordToggle?: boolean,
+    showPassword?: boolean,
     onTogglePress?: () => void,
     keyboardType: 'default' | 'email-address' = 'default'
   ) => (
@@ -117,19 +117,19 @@ export default function RegisterScreen({ navigation }: Props) {
         placeholderTextColor={COLORS.textMuted}
         value={value}
         onChangeText={setValue}
-        secureTextEntry={isPassword && !showPasswordToggle}
+        secureTextEntry={isPassword && !showPassword}
         autoCapitalize="none"
         keyboardType={keyboardType}
         onFocus={() => setFocusedInput(placeholder)}
         onBlur={() => setFocusedInput(null)}
       />
-      {isPassword && showPasswordToggle && (
+      {isPassword && typeof showPassword === 'boolean' && (
         <TouchableOpacity 
           style={styles.eyeButton} 
           onPress={onTogglePress}
         >
           <MaterialIcons 
-            name={showPasswordToggle ? "visibility" : "visibility-off"} 
+            name={showPassword ? "visibility" : "visibility-off"} 
             size={18} 
             color={COLORS.textMuted} 
           />

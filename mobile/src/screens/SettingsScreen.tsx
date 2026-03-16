@@ -36,6 +36,9 @@ export default function SettingsScreen({ navigation }: Props) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   
   const [activeTab, setActiveTab] = useState<'profile' | 'password'>('profile');
@@ -196,8 +199,19 @@ export default function SettingsScreen({ navigation }: Props) {
               onChangeText={setCurrentPassword}
               placeholder="Enter current password"
               placeholderTextColor={COLORS.textMuted}
-              secureTextEntry
+              secureTextEntry={!showCurrentPassword}
             />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowCurrentPassword((prev) => !prev)}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons
+                name={showCurrentPassword ? 'visibility' : 'visibility-off'}
+                size={20}
+                color={COLORS.textMuted}
+              />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -211,8 +225,19 @@ export default function SettingsScreen({ navigation }: Props) {
               onChangeText={setNewPassword}
               placeholder="Enter new password"
               placeholderTextColor={COLORS.textMuted}
-              secureTextEntry
+              secureTextEntry={!showNewPassword}
             />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowNewPassword((prev) => !prev)}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons
+                name={showNewPassword ? 'visibility' : 'visibility-off'}
+                size={20}
+                color={COLORS.textMuted}
+              />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -226,8 +251,19 @@ export default function SettingsScreen({ navigation }: Props) {
               onChangeText={setConfirmPassword}
               placeholder="Confirm new password"
               placeholderTextColor={COLORS.textMuted}
-              secureTextEntry
+              secureTextEntry={!showConfirmPassword}
             />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowConfirmPassword((prev) => !prev)}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons
+                name={showConfirmPassword ? 'visibility' : 'visibility-off'}
+                size={20}
+                color={COLORS.textMuted}
+              />
+            </TouchableOpacity>
           </View>
         </View>
 
