@@ -71,7 +71,7 @@ $currentUser = $stmt->fetch();
                 <div class="lg:col-span-2">
                     <div class="flex items-start gap-6 mb-4">
                         <h2 class="text-5xl lg:text-6xl font-black flex-grow leading-tight"><?= htmlspecialchars($movie['title']) ?></h2>
-                        <i onclick="toggleFavorite(<?= $movie['id'] ?>, this)" class="fas fa-heart fav-icon <?= $isFavorited ? 'favorited' : '' ?> flex-shrink-0 mt-2 cursor-pointer"></i>
+                        <i onclick="toggleFavorite(<?= (int)$movie['id'] ?>, this)" class="fas fa-heart fav-icon <?= $isFavorited ? 'favorited' : '' ?> flex-shrink-0 mt-2 cursor-pointer"></i>
                     </div>
 
                     <div class="flex items-center flex-wrap gap-4 mb-6">
@@ -93,7 +93,7 @@ $currentUser = $stmt->fetch();
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-4 mb-8">
-                        <a href="booking.php?movie_id=<?= $movie['id'] ?>" class="action-btn flex-1 text-xl py-5 text-center">
+                        <a href="booking.php?movie_id=<?= (int)$movie['id'] ?>" class="action-btn flex-1 text-xl py-5 text-center">
                             <i class="fas fa-ticket-alt mr-3"></i> Get Tickets
                         </a>
                         <?php if ($trailer): ?>
@@ -144,13 +144,8 @@ $currentUser = $stmt->fetch();
             try {
                 const response = await fetch('api.php', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'toggle_favorite',
-                        movie_id: movieId
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'toggle_favorite', movie_id: movieId })
                 });
                 
                 const result = await response.json();
@@ -164,3 +159,4 @@ $currentUser = $stmt->fetch();
     </script>
 </body>
 </html>
+

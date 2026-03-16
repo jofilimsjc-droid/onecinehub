@@ -8,6 +8,7 @@
   Favorites: undefined;
   Search: undefined;
   Notifications: undefined;
+  Settings: undefined;
   Login: undefined;
   Register: undefined;
 };

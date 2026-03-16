@@ -62,6 +62,12 @@ switch ($action) {
     case 'get_occupied_seats':
         handleGetOccupiedSeats();
         break;
+    case 'update_profile':
+        handleUpdateProfile();
+        break;
+    case 'change_password':
+        handleChangePassword();
+        break;
     default:
         jsonResponse(['success' => false, 'message' => 'Invalid action: ' . $action], 400);
 }
@@ -75,7 +81,8 @@ function handleCheckAuth() {
     
     $userId = $_SESSION['user_id'];
     
-    $stmt = $pdo->prepare("SELECT id, username, email, created_at FROM users WHERE id = ?");
+    // DB uses `registration_date`; expose it as `created_at` for clients.
+    $stmt = $pdo->prepare("SELECT id, username, email, phone, registration_date AS created_at FROM users WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
     
@@ -366,4 +373,76 @@ function handleGetOccupiedSeats() {
     
     jsonResponse($occupiedSeats);
 }
+
+function handleUpdateProfile() {
+    global $pdo;
+    
+    if (!isLoggedIn()) {
+        jsonResponse(['success' => false, 'message' => 'Not logged in'], 401);
+    }
+    
+    $input = json_decode(file_get_contents('php://input'), true) ?: [];
+    $username = trim($input['username'] ?? '');
+    $phone = isset($input['phone']) ? trim((string)$input['phone']) : null;
+    
+    if ($username === '') {
+        jsonResponse(['success' => false, 'message' => 'Username is required'], 400);
+    }
+    
+    $userId = $_SESSION['user_id'];
+    
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? AND id <> ?");
+    $stmt->execute([$username, $userId]);
+    if ($stmt->fetch()) {
+        jsonResponse(['success' => false, 'message' => 'Username already exists'], 400);
+    }
+    
+    $stmt = $pdo->prepare("UPDATE users SET username = ?, phone = ? WHERE id = ?");
+    $stmt->execute([$username, $phone !== '' ? $phone : null, $userId]);
+    $_SESSION['username'] = $username;
+    
+    $stmt = $pdo->prepare("SELECT id, username, email, phone, registration_date AS created_at FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch();
+    
+    jsonResponse(['success' => true, 'message' => 'Profile updated', 'user' => $user]);
+}
+
+function handleChangePassword() {
+    global $pdo;
+    
+    if (!isLoggedIn()) {
+        jsonResponse(['success' => false, 'message' => 'Not logged in'], 401);
+    }
+    
+    $input = json_decode(file_get_contents('php://input'), true) ?: [];
+    $currentPassword = $input['current_password'] ?? '';
+    $newPassword = $input['new_password'] ?? '';
+    $confirmPassword = $input['confirm_password'] ?? '';
+    
+    if ($currentPassword === '' || $newPassword === '' || $confirmPassword === '') {
+        jsonResponse(['success' => false, 'message' => 'All password fields are required'], 400);
+    }
+    if (strlen($newPassword) < 8) {
+        jsonResponse(['success' => false, 'message' => 'Password must be at least 8 characters'], 400);
+    }
+    if ($newPassword !== $confirmPassword) {
+        jsonResponse(['success' => false, 'message' => 'Passwords do not match'], 400);
+    }
+    
+    $userId = $_SESSION['user_id'];
+    $stmt = $pdo->prepare("SELECT password FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $row = $stmt->fetch();
+    
+    if (!$row || $row['password'] !== $currentPassword) {
+        jsonResponse(['success' => false, 'message' => 'Current password is incorrect'], 400);
+    }
+    
+    $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+    $stmt->execute([$newPassword, $userId]);
+    
+    jsonResponse(['success' => true, 'message' => 'Password updated']);
+}
 ?>
+

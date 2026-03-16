@@ -42,6 +42,8 @@ export type AuthUser = {
   id: number;
   username: string;
   email: string;
+  phone?: string | null;
+  profile_picture?: string | null;
   created_at?: string;
 };
 

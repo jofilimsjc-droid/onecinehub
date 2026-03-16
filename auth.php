@@ -98,7 +98,7 @@ function handleRegister() {
     $stmt->execute([$username, $email, $password]);
     
     $_SESSION['success'] = 'Registration successful! Please log in.';
-    redirect('index.php');
+    redirect('index.php?register=success');
 }
 
 function handleLogout() {
@@ -138,3 +138,4 @@ function handleAdminLogout() {
     redirect('admin.php');
 }
 ?>
+

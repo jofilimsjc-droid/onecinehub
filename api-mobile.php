@@ -122,6 +122,14 @@ try {
             handleGetBookingHistory($currentUser);
             break;
             
+        // Profile actions
+        case 'update_profile':
+            handleUpdateProfile($input, $currentUser);
+            break;
+        case 'change_password':
+            handleChangePassword($input, $currentUser);
+            break;
+            
         default:
             jsonResponse(['success' => false, 'message' => 'Invalid action: ' . $action], 400);
     }
@@ -163,6 +171,9 @@ function handleMobileLogin($input) {
     $stmt->execute([$user['id'], $token, $expiresAt]);
     
     unset($user['password']);
+    if (isset($user['registration_date']) && !isset($user['created_at'])) {
+        $user['created_at'] = $user['registration_date'];
+    }
     jsonResponse([
         'success' => true,
         'user' => $user,
@@ -222,7 +233,7 @@ function handleMobileRegister($input) {
     $userId = $pdo->lastInsertId();
     
     // Get the created user
-    $stmt = $pdo->prepare("SELECT id, username, email, registration_date FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id, username, email, phone, registration_date AS created_at FROM users WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
     
@@ -270,10 +281,6 @@ function handleMobileLogout($input) {
     
     jsonResponse(['success' => true, 'message' => 'Logged out']);
 }
-
-// ==========================================
-// Mobile API Functions
-// ==========================================
 
 function handleCheckAuth($currentUser) {
     global $pdo;
@@ -329,6 +336,9 @@ function handleCheckAuth($currentUser) {
     $notifications = $stmt->fetchAll();
     
     unset($currentUser['password']);
+    if (isset($currentUser['registration_date']) && !isset($currentUser['created_at'])) {
+        $currentUser['created_at'] = $currentUser['registration_date'];
+    }
     
     jsonResponse([
         'user' => $currentUser,
@@ -623,4 +633,73 @@ function handleGetBookingHistory($currentUser) {
     
     jsonResponse($bookingHistory);
 }
+
+function handleUpdateProfile($input, $currentUser) {
+    global $pdo;
+    
+    if (!$currentUser) {
+        jsonResponse(['success' => false, 'message' => 'Not logged in'], 401);
+    }
+    
+    $username = trim($input['username'] ?? '');
+    $phone = isset($input['phone']) ? trim((string)$input['phone']) : null;
+    if ($username === '') {
+        jsonResponse(['success' => false, 'message' => 'Username is required'], 400);
+    }
+    
+    $userId = $currentUser['id'];
+    
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? AND id <> ?");
+    $stmt->execute([$username, $userId]);
+    if ($stmt->fetch()) {
+        jsonResponse(['success' => false, 'message' => 'Username already exists'], 400);
+    }
+    
+    $stmt = $pdo->prepare("UPDATE users SET username = ?, phone = ? WHERE id = ?");
+    $stmt->execute([$username, $phone !== '' ? $phone : null, $userId]);
+    
+    $stmt = $pdo->prepare("SELECT id, username, email, phone, registration_date AS created_at FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch();
+    
+    jsonResponse(['success' => true, 'message' => 'Profile updated', 'user' => $user]);
+}
+
+function handleChangePassword($input, $currentUser) {
+    global $pdo;
+    
+    if (!$currentUser) {
+        jsonResponse(['success' => false, 'message' => 'Not logged in'], 401);
+    }
+    
+    $currentPassword = $input['current_password'] ?? '';
+    $newPassword = $input['new_password'] ?? '';
+    $confirmPassword = $input['confirm_password'] ?? '';
+    
+    if ($currentPassword === '' || $newPassword === '' || $confirmPassword === '') {
+        jsonResponse(['success' => false, 'message' => 'All password fields are required'], 400);
+    }
+    if (strlen($newPassword) < 8) {
+        jsonResponse(['success' => false, 'message' => 'Password must be at least 8 characters'], 400);
+    }
+    if ($newPassword !== $confirmPassword) {
+        jsonResponse(['success' => false, 'message' => 'Passwords do not match'], 400);
+    }
+    
+    $userId = $currentUser['id'];
+    $stmt = $pdo->prepare("SELECT password FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $row = $stmt->fetch();
+    
+    if (!$row || $row['password'] !== $currentPassword) {
+        jsonResponse(['success' => false, 'message' => 'Current password is incorrect'], 400);
+    }
+    
+    $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+    $stmt->execute([$newPassword, $userId]);
+    
+    jsonResponse(['success' => true, 'message' => 'Password updated']);
+}
+
+?>
 

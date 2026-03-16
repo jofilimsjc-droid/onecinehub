@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,8 +14,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { getMovies } from '../api';
-import type { Movie } from '../types/api';
+import { getMovies, getTrailers, checkAuth } from '../api';
+import type { Movie, Trailer } from '../types/api';
 import type { RootStackParamList } from '../types/navigation';
 import { COLORS, GRADIENTS, SHADOWS, SIZES, FONTS, RADIUS, SPACING } from '../theme';
 
@@ -24,14 +24,29 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Search'>;
 export default function SearchScreen({ navigation }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [trailers, setTrailers] = useState<Trailer[]>([]);
+  const [favorites, setFavorites] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadMovies = async () => {
     setLoading(true);
     try {
-      const res = await getMovies();
-      if (res.ok && Array.isArray(res.data)) {
-        setMovies(res.data as Movie[]);
+      const [moviesRes, trailersRes, authRes] = await Promise.all([
+        getMovies(),
+        getTrailers(),
+        checkAuth()
+      ]);
+      
+      if (moviesRes.ok && Array.isArray(moviesRes.data)) {
+        setMovies(moviesRes.data as Movie[]);
+      }
+      
+      if (trailersRes.ok && Array.isArray(trailersRes.data)) {
+        setTrailers(trailersRes.data as Trailer[]);
+      }
+      
+      if (authRes.ok && authRes.data?.favorites) {
+        setFavorites(authRes.data.favorites);
       }
     } catch {
       // Silent fail
@@ -60,10 +75,20 @@ export default function SearchScreen({ navigation }: Props) {
     setSearchQuery(text);
   };
 
-  const renderMovie = ({ item }: { item: Movie }) => (
+  const getTrailerForMovie = (movieId: number) => trailers.find((t) => t.movie_id === movieId)?.url;
+
+  const renderMovie = ({ item }: { item: Movie }) => {
+    const trailerUrl = getTrailerForMovie(item.id);
+    const isFavorited = favorites.includes(item.id);
+    
+    return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('MovieDetail', { movie: item })}
+      onPress={() => navigation.navigate('MovieDetail', { 
+        movie: item,
+        trailerUrl,
+        isFavorited
+      })}
       activeOpacity={0.9}
     >
       <View style={styles.cardImageContainer}>
@@ -90,7 +115,8 @@ export default function SearchScreen({ navigation }: Props) {
         <Text style={styles.meta} numberOfLines={1}>{item.genre} | {item.duration}</Text>
       </View>
     </TouchableOpacity>
-  );
+    );
+  };
 
   if (loading) {
     return (

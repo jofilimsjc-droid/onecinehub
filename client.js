@@ -1,4 +1,3 @@
-const { jsPDF } = window.jspdf
 let movies = []
 let cinemas = []
 let schedules = []
@@ -545,6 +544,9 @@ function renderPage(view, options = {}) {
     case "details":
       mainContentHTML = renderMovieDetails(options.movieId)
       break
+    case "settings":
+      mainContentHTML = renderSettingsView()
+      break
     case "booking-process":
       mainContentHTML = renderBookingPage(options.step || 1)
       break
@@ -576,6 +578,10 @@ function renderPage(view, options = {}) {
                             <i class="fas fa-chevron-down text-xs"></i>
                         </button>
                         <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-medium-bg border border-white/10 rounded-lg shadow-lg py-2 z-50">
+                            <button onclick="renderPage('settings')" class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/10 transition-colors flex items-center gap-2">
+                                <i class="fas fa-cog text-blue-400"></i>
+                                Settings
+                            </button>
                             <button onclick="logout()" class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/10 transition-colors flex items-center gap-2">
                                 <i class="fas fa-sign-out-alt text-red-500"></i>
                                 Logout
@@ -1386,6 +1392,8 @@ function downloadTicketById(txNumber) {
     return
   }
 
+  // Initialize jsPDF inside the function to ensure library is loaded
+  const { jsPDF } = window.jspdf
   const doc = new jsPDF()
   const { movie, branch, date, time, seats, totalPrice } = bookingData
 
@@ -1494,6 +1502,176 @@ function logout() {
 
   setupGuestView()
   addNotification("You have been logged out successfully.")
+}
+
+function renderSettingsView() {
+  return `
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-4xl font-black mb-8 gradient-text">Account Settings</h2>
+            
+            <!-- Success/Error Messages -->
+            <div id="settings-message" class="hidden mb-6 p-4 rounded-lg"></div>
+            
+            <!-- Profile Section -->
+            <div class="glass-card p-8 mb-8">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <i class="fas fa-user text-red-500"></i>
+                    Profile Information
+                </h3>
+                <form id="profile-form" onsubmit="updateProfile(event)">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                            <input type="text" id="settings-username" value="${currentUser.username || ''}" 
+                                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
+                                required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                            <input type="email" id="settings-email" value="${currentUser.email || ''}" 
+                                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
+                                required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
+                            <input type="tel" id="settings-phone" value="${currentUser.phone || ''}" 
+                                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
+                                placeholder="Enter your phone number">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Member Since</label>
+                            <input type="text" value="${currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : 'N/A'}" 
+                                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-gray-400" readonly>
+                        </div>
+                    </div>
+                    <button type="submit" class="action-btn">
+                        <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Change Password Section -->
+            <div class="glass-card p-8">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <i class="fas fa-lock text-red-500"></i>
+                    Change Password
+                </h3>
+                <form id="password-form" onsubmit="changePassword(event)">
+                    <div class="space-y-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
+                            <input type="password" id="current-password" 
+                                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
+                                required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
+                            <input type="password" id="new-password" 
+                                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
+                                required minlength="8">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
+                            <input type="password" id="confirm-password" 
+                                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-red-500"
+                                required>
+                        </div>
+                    </div>
+                    <button type="submit" class="action-btn">
+                        <i class="fas fa-key mr-2"></i> Change Password
+                    </button>
+                </form>
+            </div>
+        </div>
+    `;
+}
+
+async function updateProfile(e) {
+    e.preventDefault();
+    const username = document.getElementById('settings-username').value;
+    const email = document.getElementById('settings-email').value;
+    const phone = document.getElementById('settings-phone').value;
+    
+    try {
+        const response = await fetch('api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'update_profile',
+                username,
+                email,
+                phone
+            })
+        });
+        
+        const result = await response.json();
+        const messageEl = document.getElementById('settings-message');
+        
+        if (result.success) {
+            messageEl.className = 'mb-6 p-4 rounded-lg bg-green-500/20 border border-green-500 text-green-400';
+            messageEl.innerHTML = '<i class="fas fa-check-circle mr-2"></i>' + result.message;
+            currentUser.username = username;
+            currentUser.email = email;
+            currentUser.phone = phone;
+        } else {
+            messageEl.className = 'mb-6 p-4 rounded-lg bg-red-500/20 border border-red-500 text-red-400';
+            messageEl.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>' + result.message;
+        }
+        messageEl.classList.remove('hidden');
+        
+        setTimeout(() => {
+            messageEl.classList.add('hidden');
+        }, 5000);
+    } catch (error) {
+        console.error('Error updating profile:', error);
+    }
+}
+
+async function changePassword(e) {
+    e.preventDefault();
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    
+    if (newPassword !== confirmPassword) {
+        const messageEl = document.getElementById('settings-message');
+        messageEl.className = 'mb-6 p-4 rounded-lg bg-red-500/20 border border-red-500 text-red-400';
+        messageEl.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>New passwords do not match';
+        messageEl.classList.remove('hidden');
+        return;
+    }
+    
+    try {
+        const response = await fetch('api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'change_password',
+                current_password: currentPassword,
+                new_password: newPassword,
+                confirm_password: confirmPassword
+            })
+        });
+        
+        const result = await response.json();
+        const messageEl = document.getElementById('settings-message');
+        
+        if (result.success) {
+            messageEl.className = 'mb-6 p-4 rounded-lg bg-green-500/20 border border-green-500 text-green-400';
+            messageEl.innerHTML = '<i class="fas fa-check-circle mr-2"></i>' + result.message;
+            document.getElementById('password-form').reset();
+        } else {
+            messageEl.className = 'mb-6 p-4 rounded-lg bg-red-500/20 border border-red-500 text-red-400';
+            messageEl.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>' + result.message;
+        }
+        messageEl.classList.remove('hidden');
+        
+        setTimeout(() => {
+            messageEl.classList.add('hidden');
+        }, 5000);
+    } catch (error) {
+        console.error('Error changing password:', error);
+    }
 }
 
 document.addEventListener("click", (e) => {

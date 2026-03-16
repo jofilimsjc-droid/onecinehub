@@ -35,7 +35,7 @@ if ($registrationSuccess) {
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
                 showNotification(
-                    '<i class="fas fa-check-circle"></i> Registration Successful!',
+                    '<i class=\"fas fa-check-circle\"></i> Registration Successful!',
                     'Your account has been created successfully. You can now sign in with your credentials.',
                     'success',
                     8000
@@ -44,7 +44,7 @@ if ($registrationSuccess) {
                 // Also show a second notification with tips after 1 second
                 setTimeout(function() {
                     showNotification(
-                        '<i class="fas fa-lightbulb"></i> Quick Tip',
+                        '<i class=\"fas fa-lightbulb\"></i> Quick Tip',
                         'You can now sign in and start booking your favorite movies!',
                         'info',
                         6000

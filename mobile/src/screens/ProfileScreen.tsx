@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -25,7 +25,6 @@ export default function ProfileScreen({ navigation }: Props) {
   const [bookingsCount, setBookingsCount] = useState(0);
   const [loadingStats, setLoadingStats] = useState(true);
 
-  // Fetch user activity data
   const loadUserActivity = async () => {
     try {
       const res = await checkAuth();
@@ -40,7 +39,6 @@ export default function ProfileScreen({ navigation }: Props) {
     }
   };
 
-  // Refresh user data and activity when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       reload();
@@ -67,7 +65,8 @@ export default function ProfileScreen({ navigation }: Props) {
   };
 
   const menuItems = [
-    { title: 'Notifications', screen: 'Notifications', icon: 'notifications', color: COLORS.primary },
+    { title: 'Settings', screen: 'Settings', icon: 'settings', color: COLORS.primary },
+    { title: 'Notifications', screen: 'Notifications', icon: 'notifications', color: COLORS.blue },
     { title: 'Booking History', screen: 'History', icon: 'confirmation-number', color: COLORS.gold },
     { title: 'Favorites', screen: 'Favorites', icon: 'favorite', color: COLORS.error },
   ];
@@ -111,21 +110,10 @@ export default function ProfileScreen({ navigation }: Props) {
               {loadingStats ? (
                 <ActivityIndicator size="small" color={COLORS.primary} />
               ) : (
-                <>
-                  <Text style={styles.statValue}>0</Text>
-                  <Text style={styles.statLabel}>Movies</Text>
-                </>
-              )}
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              {loadingStats ? (
-                <ActivityIndicator size="small" color={COLORS.primary} />
-              ) : (
-                <>
+                <View>
                   <Text style={styles.statValue}>{favoritesCount}</Text>
                   <Text style={styles.statLabel}>Favorites</Text>
-                </>
+                </View>
               )}
             </View>
             <View style={styles.statDivider} />
@@ -133,10 +121,10 @@ export default function ProfileScreen({ navigation }: Props) {
               {loadingStats ? (
                 <ActivityIndicator size="small" color={COLORS.primary} />
               ) : (
-                <>
+                <View>
                   <Text style={styles.statValue}>{bookingsCount}</Text>
                   <Text style={styles.statLabel}>Bookings</Text>
-                </>
+                </View>
               )}
             </View>
           </View>
@@ -171,7 +159,6 @@ export default function ProfileScreen({ navigation }: Props) {
             colors={['rgba(239,68,68,0.1)', 'rgba(239,68,68,0.05)']}
             style={styles.logoutGradient}
           >
-           
             <Text style={styles.logoutText}>Sign Out</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -393,4 +380,3 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs 
   },
 });
-

@@ -16,7 +16,34 @@ const { width } = Dimensions.get('window');
 type Props = NativeStackScreenProps<RootStackParamList, 'MovieDetail'>;
 
 export default function MovieDetailScreen({ route, navigation }: Props) {
-  const { movie, trailerUrl, isFavorited: initialFavorited } = route.params as { movie: Movie; trailerUrl?: string; isFavorited?: boolean };
+  const params = route.params as { movie?: Movie; trailerUrl?: string; isFavorited?: boolean } | undefined;
+  
+  // Handle missing params gracefully - redirect to home if no movie data
+  if (!params?.movie) {
+    return (
+      <SafeAreaView style={[styles.container, styles.centered]}>
+        <View style={styles.errorContainer}>
+          <MaterialIcons name="error-outline" size={64} color={COLORS.error} />
+          <Text style={styles.errorText}>Movie not found</Text>
+          <TouchableOpacity 
+            style={styles.errorButton}
+            onPress={() => {
+              // Try to go back first, if not possible navigate to MainTabs
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+              } else {
+                navigation.navigate('MainTabs');
+              }
+            }}
+          >
+            <Text style={styles.errorButtonText}>Go to Home</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  
+  const { movie, trailerUrl, isFavorited: initialFavorited } = params;
   const { showToast } = useToast();
   const [favorited, setFavorited] = useState<boolean>(initialFavorited ?? false);
   const [loading, setLoading] = useState(false);
@@ -464,6 +491,33 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted, 
     fontSize: FONTS.sm, 
     textAlign: 'center' 
+  },
+  // Error state styles
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    alignItems: 'center',
+    padding: SPACING.xl,
+  },
+  errorText: {
+    color: COLORS.text,
+    fontSize: FONTS.lg,
+    fontWeight: '600',
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.xl,
+  },
+  errorButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xl,
+    borderRadius: RADIUS.lg,
+  },
+  errorButtonText: {
+    color: COLORS.text,
+    fontSize: FONTS.md,
+    fontWeight: '700',
   },
 });
 

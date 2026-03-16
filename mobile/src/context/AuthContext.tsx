@@ -15,6 +15,7 @@ type AuthContextValue = {
   ) => Promise<{ success: boolean; message?: string }>;
   logout: () => Promise<void>;
   reload: () => Promise<void>;
+  updateUser: (user: AuthUser) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -94,8 +95,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
+  const updateUser = async (updatedUser: AuthUser) => {
+    setUser(updatedUser);
+    await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
   const value = useMemo<AuthContextValue>(
-    () => ({ user, loading, login, register, logout, reload }),
+    () => ({ user, loading, login, register, logout, reload, updateUser }),
     [user, loading],
   );
 

@@ -9,6 +9,7 @@ type ApiOptions = Omit<RequestInit, 'headers' | 'body'> & {
   body?: unknown;
 };
 
+// Use the root mobile API endpoint (token-based).
 const MOBILE_API_URL = `${API_BASE_URL}/api-mobile.php`;
 
 const getToken = async (): Promise<string | null> => {
@@ -133,5 +134,17 @@ export const markNotificationRead = (notificationId: number) =>
 export const markAllNotificationsRead = () =>
   api<{ success: boolean }>('?action=mark_all_notifications_read', {
     method: 'POST',
+  });
+
+export const updateProfile = (username: string, email: string, phone: string) =>
+  api<{ success: boolean; message: string; user?: any }>('?action=update_profile', {
+    method: 'POST',
+    body: { username, email, phone },
+  });
+
+export const changePassword = (currentPassword: string, newPassword: string, confirmPassword: string) =>
+  api<{ success: boolean; message: string }>('?action=change_password', {
+    method: 'POST',
+    body: { current_password: currentPassword, new_password: newPassword, confirm_password: confirmPassword },
   });
 

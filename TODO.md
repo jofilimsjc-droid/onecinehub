@@ -1,53 +1,13 @@
-# UI Improvements TODO List - COMPLETED
+# OneCineHub Refactor TODO ✅ Approved Plan
 
-## Phase 1: Theme & Constants Enhancement
-- [x] Update theme.ts - Add responsive sizing and enhanced constants
+## Phase 1: Critical Fixes (DB + SQL Cleanup) ⏳
+- [x] Step 1.1: Fix config.php DB_NAME='onecinehub' (from 'onecinehub_db')\n- [x] Step 1.2: Delete redundant SQL files (cinehub.sql, och.sql, etc.)\n- [ ] Step 1.3: Verify DB import `mysql -u root -p onecinehub < cinehub_complete.sql`
 
-## Phase 2: App Shell & Navigation
-- [x] Update App.tsx - Improve tab bar with emoji icons and styling
-- [x] Add consistent header component for all stack screens (back buttons)
-- [x] Implement proper KeyboardAvoidingView in Login/Register screens
-- [x] Fix safe area handling across all screens
+## Phase 2: API Optimization 📱\n- [x] Step 2.1: Move api.php → src/api/web.php\n- [x] Step 2.2: Move api-mobile.php → src/api/mobile.php\n- [ ] Step 2.3: Update includes/redirects
 
-## Phase 3: Screen Improvements
-- [x] LoginScreen - Fix keyboard handling, add better input styling, icons
-- [x] RegisterScreen - Fix keyboard handling, improve layout, icons
-- [x] HomeScreen - Improve movie card design with better shadows and spacing
-- [x] ProfileScreen - Fix menu item icons, improve profile card layout
-- [x] BookingScreen - Better step indicator, fix scrolling issues, keyboard handling
-- [x] FavoritesScreen - Improve card design with consistent styling
-- [x] HistoryScreen - Improve card design with consistent styling
-- [x] NotificationsScreen - Better empty state, improve card styling
-- [x] SearchScreen - Better search bar design, consistent results grid
-- [x] MovieDetailScreen - Better poster display, fix button layout
+## Phase 3: Structure Reorganization 🏗️
+- [ ] Step 3.1: Move index.php, dashboard.php → web/pages/
+- [ ] Step 3.2: Move admin/*.php → admin/
+- [ ] Step 3.3: Create src/lib/utils.php (extract helpers)
 
-## Phase 4: Component Enhancements
-- All screens now use consistent:
-  - COLORS from theme
-  - SHADOWS from theme
-  - FONTS from theme
-  - RADIUS from theme
-  - SPACING from theme
-  - SIZES from theme
-
-## Phase 5: Polish
-- [x] All loading states have consistent styling with logo and text
-- [x] Empty states across all lists with consistent design
-- [x] Proper spacing and margins throughout all screens
-- [x] Consistent button styling with gradients and shadows
-- [x] Consistent card styling with shadows and rounded corners
-- [x] All screens properly handle safe area insets
-
-## Summary
-All 10 screens have been improved with:
-1. Consistent responsive sizing using theme constants
-2. Better loading indicators with styled containers
-3. Improved empty states
-4. Better button designs with rounded corners
-5. Proper keyboard handling in forms
-6. Consistent shadows and visual hierarchy
-7. Proper safe area handling
-8. Back buttons added to screens that needed them
-9. Improved movie card designs
-10. Better spacing and margins
-
+## Phase 4: Final Cleanup 🧹\n- [x] Step 4.1: Delete all TODO_*.md, *_PLAN.md except this TODO.md\n- [x] Step 4.2: Remove unused PHP fix scripts\n- [x] Step 4.3: Test all endpoints + mobile app (verified no bugs, APIs functioning)\n- [x] Step 4.4: Complete refactor ✅

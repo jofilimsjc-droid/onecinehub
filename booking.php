@@ -84,7 +84,7 @@ $currentUser = $stmt->fetch();
                     <?php else: ?>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <?php foreach ($cinemas as $cinema): ?>
-                                <button onclick="selectCinema(<?= $cinema['id'] ?>, '<?= htmlspecialchars($cinema['name']) ?>')" class="glass-card p-6 text-left hover:border-red-500/50 transition-all group">
+                                <button onclick="selectCinema(<?= (int)$cinema['id'] ?>, '<?= htmlspecialchars($cinema['name']) ?>')" class="glass-card p-6 text-left hover:border-red-500/50 transition-all group">
                                     <i class="fas fa-building text-3xl text-red-500 mb-4 group-hover:scale-110 transition-transform"></i>
                                     <h3 class="font-black text-xl mb-2"><?= htmlspecialchars($cinema['name']) ?></h3>
                                     <p class="text-gray-400 mb-2"><?= htmlspecialchars($cinema['location']) ?></p>
@@ -157,12 +157,7 @@ $currentUser = $stmt->fetch();
         let currentStep = 1;
         
         function goToStep(step) {
-            // Hide all steps
-            document.querySelectorAll('.booking-step').forEach(el => {
-                el.classList.add('hidden');
-            });
-            
-            // Show target step
+            document.querySelectorAll('.booking-step').forEach(el => el.classList.add('hidden'));
             document.getElementById(`step-${step}`).classList.remove('hidden');
             currentStep = step;
         }
@@ -171,7 +166,6 @@ $currentUser = $stmt->fetch();
             bookingData.cinemaId = cinemaId;
             bookingData.cinemaName = cinemaName;
             
-            // Load schedules for this cinema and movie
             try {
                 const response = await fetch(`api.php?action=get_schedules&movie_id=${movie.id}`);
                 const schedules = await response.json();
@@ -206,13 +200,11 @@ $currentUser = $stmt->fetch();
             
             dates.forEach((date, index) => {
                 const dateObj = new Date(date);
-                const isSelected = index === 0; // Select first date by default
+                const isSelected = index === 0;
                 if (isSelected) bookingData.date = date;
                 
                 html += `
-                    <button onclick="selectDate('${date}', this)" 
-                        class="date-btn glass-card p-4 text-center ${isSelected ? 'border-red-500 border-2' : ''} hover:border-red-500/50 transition-all"
-                        data-date="${date}">
+                    <button onclick="selectDate('${date}')" class="date-btn glass-card p-4 text-center ${isSelected ? 'border-red-500 border-2' : ''}" data-date="${date}">
                         <p class="text-xs text-gray-400 uppercase mb-1">${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}</p>
                         <p class="text-2xl font-black">${dateObj.getDate()}</p>
                         <p class="text-xs text-gray-400">${dateObj.toLocaleDateString('en-US', { month: 'short' })}</p>
@@ -223,156 +215,96 @@ $currentUser = $stmt->fetch();
             html += `
                 </div>
                 <h3 class="text-xl font-bold mb-4">Select Time</h3>
-                <div id="showtimes-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div id="showtimes-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
             `;
             
-            // Show times for first date by default
-            const firstDateSchedule = schedules.find(s => s.date === dates[0]);
-            if (firstDateSchedule) {
-                const showTimes = JSON.parse(firstDateSchedule.show_times);
-                showTimes.forEach(time => {
-                    html += `
-                        <button onclick="selectTime('${time}', ${firstDateSchedule.price})" class="glass-card p-6 text-center hover:border-red-500/50 transition-all group">
-                            <i class="fas fa-clock text-2xl text-red-500 mb-2 group-hover:scale-110 transition-transform"></i>
-                            <p class="font-black text-xl">${time}</p>
-                            <p class="text-xs text-gray-400 mt-1">Hall ${firstDateSchedule.hall}</p>
-                            <p class="text-xs text-green-400 mt-1">₱${parseFloat(firstDateSchedule.price).toFixed(2)}</p>
-                        </button>
-                    `;
-                });
-            }
-            
-            html += '</div>';
-            
             document.getElementById('date-time-content').innerHTML = html;
+            renderShowtimes(schedules, bookingData.date);
         }
         
-        function selectDate(date, buttonElement) {
-            // Update button states
-            document.querySelectorAll('.date-btn').forEach(btn => {
-                btn.classList.remove('border-red-500', 'border-2');
-            });
-            buttonElement.classList.add('border-red-500', 'border-2');
-            
+        function selectDate(date) {
             bookingData.date = date;
             
-            // Update showtimes for selected date
-            updateShowtimes(date);
-        }
-        
-        async function updateShowtimes(date) {
-            try {
-                const response = await fetch(`api.php?action=get_schedules&movie_id=${movie.id}`);
-                const schedules = await response.json();
-                
-                const schedule = schedules.find(s => s.cinema_id == bookingData.cinemaId && s.date === date);
-                
-                if (schedule) {
-                    const showTimes = JSON.parse(schedule.show_times);
-                    let html = '';
-                    
-                    showTimes.forEach(time => {
-                        html += `
-                            <button onclick="selectTime('${time}', ${schedule.price})" class="glass-card p-6 text-center hover:border-red-500/50 transition-all group">
-                                <i class="fas fa-clock text-2xl text-red-500 mb-2 group-hover:scale-110 transition-transform"></i>
-                                <p class="font-black text-xl">${time}</p>
-                                <p class="text-xs text-gray-400 mt-1">Hall ${schedule.hall}</p>
-                                <p class="text-xs text-green-400 mt-1">₱${parseFloat(schedule.price).toFixed(2)}</p>
-                            </button>
-                        `;
-                    });
-                    
-                    document.getElementById('showtimes-grid').innerHTML = html;
+            document.querySelectorAll('.date-btn').forEach(btn => {
+                btn.classList.remove('border-red-500', 'border-2');
+                if (btn.dataset.date === date) {
+                    btn.classList.add('border-red-500', 'border-2');
                 }
-            } catch (error) {
-                console.error('Error updating showtimes:', error);
-            }
-        }
-        
-        function selectTime(time, price) {
-            bookingData.time = time;
-            bookingData.ticketPrice = parseFloat(price);
+            });
             
-            renderSeatSelection();
-            goToStep(3);
+            fetch(`api.php?action=get_schedules&movie_id=${movie.id}`)
+                .then(res => res.json())
+                .then(schedules => {
+                    const cinemaSchedules = schedules.filter(s => s.cinema_id == bookingData.cinemaId);
+                    renderShowtimes(cinemaSchedules, date);
+                });
         }
         
-        async function renderSeatSelection() {
-            // Get occupied seats
+        function renderShowtimes(schedules, date) {
+            const scheduleForDate = schedules.find(s => s.date === date);
+            const showTimes = scheduleForDate ? JSON.parse(scheduleForDate.show_times || '[]') : [];
+            
+            const grid = document.getElementById('showtimes-grid');
+            grid.innerHTML = showTimes.map(time => `
+                <button onclick="selectTime('${time}', ${scheduleForDate ? scheduleForDate.price : 350})" class="glass-card p-6 text-center hover:border-red-500/50 transition-all group">
+                    <i class="fas fa-clock text-2xl text-red-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                    <p class="font-black text-xl">${time}</p>
+                    <p class="text-xs text-gray-400 mt-1">Hall 1</p>
+                </button>
+            `).join('');
+        }
+        
+        async function selectTime(time, price) {
+            bookingData.time = time;
+            bookingData.totalPrice = price;
+            
             try {
-                const response = await fetch(`api.php?action=get_occupied_seats&movie_id=${bookingData.movieId}&branch=${encodeURIComponent(bookingData.cinemaName)}&date=${bookingData.date}&time=${bookingData.time}`);
+                const response = await fetch(`api.php?action=get_occupied_seats&movie_id=${movie.id}&branch=${encodeURIComponent(bookingData.cinemaName)}&date=${bookingData.date}&time=${encodeURIComponent(time)}`);
                 const occupiedSeats = await response.json();
-                
-                const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-                let html = `
-                    <div class="glass-card p-6 sm:p-8 lg:p-10">
-                        <div class="seat-map-screen"></div>
-                        <div class="seat-map-container mb-10">
-                `;
-                
-                rows.forEach(row => {
-                    html += `<div class="seat-row"><div class="seat-row-label">${row}</div>`;
-                    
-                    for (let i = 1; i <= 14; i++) {
-                        const seatId = `${row}${i}`;
-                        const isOccupied = occupiedSeats.includes(seatId);
-                        
-                        if (i === 4 || i === 12) {
-                            html += '<div class="seat aisle"></div>';
-                        }
-                        
-                        html += `<div class="seat ${isOccupied ? 'occupied' : ''}" data-seat="${seatId}" ${isOccupied ? '' : `onclick="toggleSeat(this)"`}>${seatId}</div>`;
-                    }
-                    
-                    html += `<div class="seat-row-label">${row}</div></div>`;
-                });
-                
-                html += `
-                        </div>
-                        <div class="border-t border-white/10 pt-8">
-                            <div class="flex items-center justify-center flex-wrap gap-8 text-sm mb-8">
-                                <span class="flex items-center gap-3">
-                                    <div class="w-6 h-6 rounded-lg" style="background-color: var(--green);"></div>
-                                    <span class="font-bold">Available</span>
-                                </span>
-                                <span class="flex items-center gap-3">
-                                    <div class="w-6 h-6 rounded-lg" style="background-color: var(--selected-seat);"></div>
-                                    <span class="font-bold">Selected</span>
-                                </span>
-                                <span class="flex items-center gap-3">
-                                    <div class="w-6 h-6 rounded-lg" style="background-color: var(--occupied-seat);"></div>
-                                    <span class="font-bold">Reserved</span>
-                                </span>
-                            </div>
-                            
-                            <div class="bg-dark-bg rounded-xl p-6 flex flex-wrap justify-between items-center gap-6">
-                                <div class="flex items-center gap-10 flex-wrap">
-                                    <div>
-                                        <p class="text-gray-400 text-xs uppercase mb-2 font-bold">Your Selection</p>
-                                        <p id="seat-selection-summary" class="font-black text-2xl">None</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-gray-400 text-xs uppercase mb-2 font-bold">Total Price</p>
-                                        <p id="seat-price-summary" class="font-black text-3xl text-red-500">₱0.00</p>
-                                    </div>
-                                </div>
-                                <button id="proceed-to-payment-btn" class="action-btn px-10 py-4 text-lg whitespace-nowrap" disabled onclick="proceedToPayment()">
-                                    Proceed to Payment
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                document.getElementById('seat-selection-content').innerHTML = html;
+                renderSeatSelection(occupiedSeats);
+                goToStep(3);
             } catch (error) {
                 console.error('Error loading occupied seats:', error);
             }
         }
         
-        function toggleSeat(seatElement) {
-            if (seatElement.classList.contains('occupied') || seatElement.classList.contains('aisle')) return;
+        function renderSeatSelection(occupiedSeats) {
+            const rows = ["A", "B", "C", "D", "E", "F", "G", "H"];
+            const seatsHtml = rows.map(row => {
+                let rowSeats = '';
+                for (let i = 1; i <= 14; i++) {
+                    const seatId = `${row}${i}`;
+                    const isOccupied = occupiedSeats.includes(seatId);
+                    rowSeats += `<div class="seat ${isOccupied ? 'occupied' : ''}" data-seat="${seatId}" ${isOccupied ? '' : `onclick="toggleSeat(this)"`}>${seatId}</div>`;
+                    if (i === 3 || i === 11) rowSeats += '<div class="seat aisle"></div>';
+                }
+                return `<div class="seat-row"><div class="seat-row-label">${row}</div>${rowSeats}<div class="seat-row-label">${row}</div></div>`;
+            }).join('');
             
+            document.getElementById('seat-selection-content').innerHTML = `
+                <div class="glass-card p-6 sm:p-8 lg:p-10">
+                    <div class="seat-map-screen"></div>
+                    <div class="seat-map-container mb-10">${seatsHtml}</div>
+                    <div class="bg-dark-bg rounded-xl p-6 flex flex-wrap justify-between items-center gap-6">
+                        <div class="flex items-center gap-10 flex-wrap">
+                            <div>
+                                <p class="text-gray-400 text-xs uppercase mb-2 font-bold">Your Selection</p>
+                                <p id="seat-selection-summary" class="font-black text-2xl">None</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 text-xs uppercase mb-2 font-bold">Total Price</p>
+                                <p id="seat-price-summary" class="font-black text-3xl text-red-500">₱0.00</p>
+                            </div>
+                        </div>
+                        <button id="proceed-to-payment-btn" class="action-btn px-10 py-4 text-lg whitespace-nowrap" disabled onclick="goToPayment()">
+                            Proceed to Payment
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function toggleSeat(seatElement) {
             seatElement.classList.toggle('selected');
             const seatId = seatElement.dataset.seat;
             
@@ -382,156 +314,51 @@ $currentUser = $stmt->fetch();
                 bookingData.seats.push(seatId);
             }
             
-            updateSeatSummary();
-        }
-        
-        function updateSeatSummary() {
-            const selectionSummaryEl = document.getElementById('seat-selection-summary');
-            const priceSummaryEl = document.getElementById('seat-price-summary');
-            const proceedBtn = document.getElementById('proceed-to-payment-btn');
             const seatCount = bookingData.seats.length;
-            
-            if (seatCount === 0) {
-                selectionSummaryEl.textContent = 'None';
-                priceSummaryEl.textContent = '₱0.00';
-                proceedBtn.disabled = true;
-                bookingData.totalPrice = 0;
-            } else {
-                bookingData.totalPrice = seatCount * bookingData.ticketPrice;
-                const sortedSeats = bookingData.seats.sort();
-                selectionSummaryEl.textContent = sortedSeats.join(', ');
-                priceSummaryEl.textContent = `₱${bookingData.totalPrice.toFixed(2)}`;
-                proceedBtn.disabled = false;
-            }
+            document.getElementById('seat-selection-summary').textContent = seatCount ? bookingData.seats.sort().join(', ') : 'None';
+            document.getElementById('seat-price-summary').textContent = seatCount ? `₱${(seatCount * bookingData.totalPrice).toFixed(2)}` : '₱0.00';
+            document.getElementById('proceed-to-payment-btn').disabled = seatCount === 0;
         }
         
-        function proceedToPayment() {
-            renderPaymentForm();
+        function goToPayment() {
+            bookingData.totalPrice = bookingData.seats.length * bookingData.totalPrice;
+            renderPayment();
             goToStep(4);
         }
         
-        function renderPaymentForm() {
-            const html = `
+        function renderPayment() {
+            document.getElementById('payment-content').innerHTML = `
                 <div class="glass-card p-8 sm:p-10">
+                    <h2 class="text-4xl font-black mb-10 text-center gradient-text">Payment</h2>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                         <div>
                             <h3 class="font-black text-2xl mb-6 pb-4 border-b border-white/10">Booking Summary</h3>
                             <div class="space-y-5 text-base">
-                                <div class="flex items-start gap-4">
-                                    <i class="fas fa-film text-red-500 text-xl w-6"></i>
-                                    <div>
-                                        <p class="text-gray-400 text-sm mb-1">Movie</p>
-                                        <p class="font-bold text-lg">${bookingData.movie.title}</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-start gap-4">
-                                    <i class="fas fa-map-marker-alt text-red-500 text-xl w-6"></i>
-                                    <div>
-                                        <p class="text-gray-400 text-sm mb-1">Cinema</p>
-                                        <p class="font-bold text-lg">${bookingData.cinemaName}</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-start gap-4">
-                                    <i class="fas fa-calendar-alt text-red-500 text-xl w-6"></i>
-                                    <div>
-                                        <p class="text-gray-400 text-sm mb-1">Date & Time</p>
-                                        <p class="font-bold text-lg">${new Date(bookingData.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                                        <p class="text-gray-300">${bookingData.time}</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-start gap-4">
-                                    <i class="fas fa-chair text-red-500 text-xl w-6"></i>
-                                    <div>
-                                        <p class="text-gray-400 text-sm mb-1">Seats</p>
-                                        <p class="font-mono bg-dark-bg px-4 py-2 rounded-lg text-lg font-bold">${bookingData.seats.join(', ')}</p>
-                                    </div>
-                                </div>
-                                <hr class="border-white/10 my-6">
                                 <div class="flex justify-between items-center text-2xl">
                                     <span class="font-black">Total:</span>
                                     <span class="text-red-500 font-black">₱${bookingData.totalPrice.toFixed(2)}</span>
                                 </div>
                             </div>
                         </div>
-                        
                         <div>
                             <h3 class="font-black text-2xl mb-6 pb-4 border-b border-white/10">Payment Method</h3>
                             <div class="space-y-4 mb-8">
-                                <button class="payment-method-btn w-full text-left p-5 glass-card border-2 border-transparent hover:border-red-500/50 transition-all flex items-center gap-4 group" 
-                                    data-method="GCash" onclick="selectPaymentMethod('GCash', this)">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-red-500/20 to-red-700/20 rounded-lg flex items-center justify-center group-hover:from-red-500/30 group-hover:to-red-700/30 transition-all">
-                                        <i class="fas fa-mobile-alt text-red-500 text-xl"></i>
-                                    </div>
-                                    <span class="font-black text-lg">GCash</span>
-                                </button>
-                                <button class="payment-method-btn w-full text-left p-5 glass-card border-2 border-transparent hover:border-red-500/50 transition-all flex items-center gap-4 group" 
-                                    data-method="PayMaya" onclick="selectPaymentMethod('PayMaya', this)">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-red-500/20 to-red-700/20 rounded-lg flex items-center justify-center group-hover:from-red-500/30 group-hover:to-red-700/30 transition-all">
-                                        <i class="fas fa-wallet text-red-500 text-xl"></i>
-                                    </div>
-                                    <span class="font-black text-lg">PayMaya</span>
-                                </button>
-                                <button class="payment-method-btn w-full text-left p-5 glass-card border-2 border-transparent hover:border-red-500/50 transition-all flex items-center gap-4 group" 
-                                    data-method="Credit/Debit Card" onclick="selectPaymentMethod('Credit/Debit Card', this)">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-red-500/20 to-red-700/20 rounded-lg flex items-center justify-center group-hover:from-red-500/30 group-hover:to-red-700/30 transition-all">
-                                        <i class="fas fa-credit-card text-red-500 text-xl"></i>
-                                    </div>
-                                    <span class="font-black text-lg">Credit/Debit Card</span>
-                                </button>
+                                <button class="payment-method-btn w-full text-left p-5 glass-card border-2 border-transparent hover:border-red-500/50 transition-all flex items-center gap-4" onclick="selectPaymentMethod('GCash', this)">GCash</button>
+                                <button class="payment-method-btn w-full text-left p-5 glass-card border-2 border-transparent hover:border-red-500/50 transition-all flex items-center gap-4" onclick="selectPaymentMethod('PayMaya', this)">PayMaya</button>
+                                <button class="payment-method-btn w-full text-left p-5 glass-card border-2 border-transparent hover:border-red-500/50 transition-all flex items-center gap-4" onclick="selectPaymentMethod('Credit/Debit Card', this)">Credit/Debit Card</button>
                             </div>
                             <div id="payment-form-container"></div>
                         </div>
                     </div>
                 </div>
             `;
-            
-            document.getElementById('payment-content').innerHTML = html;
         }
         
         function selectPaymentMethod(method, buttonElement) {
-            document.querySelectorAll('.payment-method-btn').forEach(btn => {
-                btn.classList.remove('border-red-500', 'border-2');
-            });
+            document.querySelectorAll('.payment-method-btn').forEach(btn => btn.classList.remove('border-red-500', 'border-2'));
             buttonElement.classList.add('border-red-500', 'border-2');
-            
             bookingData.paymentMethod = method;
-            
-            let form = '';
-            if (method === 'GCash' || method === 'PayMaya') {
-                form = `
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-bold mb-2">${method} Number</label>
-                            <input type="tel" placeholder="09XX XXX XXXX" required
-                                class="w-full bg-light-bg border-2 border-white/10 p-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
-                        </div>
-                    </div>
-                `;
-            } else {
-                form = `
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-bold mb-2">Card Number</label>
-                            <input type="text" placeholder="1234 5678 9012 3456" required
-                                class="w-full bg-light-bg border-2 border-white/10 p-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-bold mb-2">Expiry (MM/YY)</label>
-                                <input type="text" placeholder="MM/YY" required
-                                    class="w-full bg-light-bg border-2 border-white/10 p-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold mb-2">CVV</label>
-                                <input type="text" placeholder="123" required
-                                    class="w-full bg-light-bg border-2 border-white/10 p-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            document.getElementById('payment-form-container').innerHTML = form + `
+            document.getElementById('payment-form-container').innerHTML = `
                 <button onclick="confirmPayment()" class="action-btn w-full mt-6 py-4 text-lg">
                     <i class="fas fa-check-circle mr-2"></i> Confirm Payment
                 </button>
@@ -542,9 +369,7 @@ $currentUser = $stmt->fetch();
             try {
                 const response = await fetch('api.php', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'create_booking',
                         movie_id: bookingData.movieId,
@@ -559,10 +384,9 @@ $currentUser = $stmt->fetch();
                 });
                 
                 const result = await response.json();
-                
                 if (result.success) {
                     bookingData.txNumber = result.tx_number;
-                    renderConfirmation();
+                    document.getElementById('confirmation-content').innerHTML = `<div class="text-center py-20"><h2 class="text-4xl font-black mb-4 gradient-text">Booking Successful!</h2><p class="text-gray-400">Booking ID: ${bookingData.txNumber}</p><a href="dashboard.php" class="action-btn mt-6 inline-block">Back</a></div>`;
                     goToStep(5);
                 } else {
                     alert('Error creating booking: ' + result.message);
@@ -572,98 +396,7 @@ $currentUser = $stmt->fetch();
                 alert('Error creating booking. Please try again.');
             }
         }
-        
-        function renderConfirmation() {
-            const html = `
-                <div class="max-w-2xl mx-auto text-center">
-                    <div class="mb-8">
-                        <div class="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <i class="fas fa-check-circle text-6xl text-green-500"></i>
-                        </div>
-                        <h2 class="text-5xl font-black mb-4 gradient-text">Booking Successful!</h2>
-                        <p class="text-xl text-gray-400">Your e-ticket is ready</p>
-                    </div>
-                    
-                    <div class="glass-card p-8 text-left mb-8">
-                        <div class="flex items-center gap-6 mb-6 pb-6 border-b border-white/10">
-                            <img src="${bookingData.movie.poster}" class="w-20 h-30 object-cover rounded-lg shadow-lg">
-                            <div>
-                                <h3 class="font-black text-2xl mb-1">${bookingData.movie.title}</h3>
-                                <p class="text-gray-400">${bookingData.cinemaName}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-3 mb-6">
-                            <p class="flex justify-between"><span class="text-gray-400">Date:</span><span class="font-bold">${new Date(bookingData.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></p>
-                            <p class="flex justify-between"><span class="text-gray-400">Time:</span><span class="font-bold">${bookingData.time}</span></p>
-                            <p class="flex justify-between"><span class="text-gray-400">Seats:</span><span class="font-bold font-mono">${bookingData.seats.join(', ')}</span></p>
-                            <p class="flex justify-between"><span class="text-gray-400">Total Paid:</span><span class="font-bold text-red-500">₱${bookingData.totalPrice.toFixed(2)}</span></p>
-                        </div>
-                        
-                        <div class="bg-dark-bg rounded-lg p-6 text-center">
-                            <p class="text-gray-400 text-sm mb-2 uppercase font-bold tracking-wider">Booking ID</p>
-                            <p class="font-mono text-3xl font-black bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">${bookingData.txNumber}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex flex-col sm:flex-row justify-center gap-4">
-                        <a href="dashboard.php" class="action-btn bg-gray-700 hover:bg-gray-600 px-8 py-4 text-lg inline-block">
-                            <i class="fas fa-home mr-2"></i> Back to Home
-                        </a>
-                        <button onclick="downloadTicket()" class="action-btn px-8 py-4 text-lg">
-                            <i class="fas fa-download mr-2"></i> Download Ticket
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('confirmation-content').innerHTML = html;
-        }
-        
-        function downloadTicket() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(26);
-            doc.setTextColor(229, 9, 20);
-            doc.text('ONECINEHUB E-TICKET', 105, 20, null, null, 'center');
-            
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-            doc.setTextColor(100);
-            doc.text(`Booking ID: ${bookingData.txNumber}`, 105, 28, null, null, 'center');
-            
-            doc.setLineWidth(0.5);
-            doc.setDrawColor(229, 9, 20);
-            doc.line(20, 35, 190, 35);
-            
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(18);
-            doc.setTextColor(0);
-            doc.text(bookingData.movie.title, 20, 50);
-            
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(12);
-            doc.setTextColor(60);
-            doc.text(`Cinema: ${bookingData.cinemaName}`, 20, 65);
-            doc.text(`Date: ${new Date(bookingData.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`, 20, 75);
-            doc.text(`Showtime: ${bookingData.time}`, 20, 85);
-            doc.text(`Seats: ${bookingData.seats.join(', ')}`, 20, 95);
-            doc.text(`Total Price: PHP ${bookingData.totalPrice.toFixed(2)}`, 20, 105);
-            
-            doc.setLineWidth(0.3);
-            doc.setDrawColor(200);
-            doc.line(20, 115, 190, 115);
-            
-            doc.setFont('helvetica', 'italic');
-            doc.setFontSize(9);
-            doc.setTextColor(120);
-            doc.text('Present this ticket at the cinema entrance', 105, 125, null, null, 'center');
-            doc.text('Thank you for choosing ONECINEHUB!', 105, 132, null, null, 'center');
-            
-            doc.save(`ONECINEHUB-Ticket-${bookingData.txNumber}.pdf`);
-        }
     </script>
 </body>
 </html>
+

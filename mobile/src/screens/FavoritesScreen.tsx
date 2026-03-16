@@ -15,9 +15,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { checkAuth, getMovies } from '../api';
+import { checkAuth, getMovies, getTrailers } from '../api';
 import { useToast } from '../context/ToastContext';
-import type { Movie } from '../types/api';
+import type { Movie, Trailer } from '../types/api';
 import type { RootStackParamList } from '../types/navigation';
 import { COLORS, GRADIENTS, SHADOWS, SIZES, FONTS, RADIUS, SPACING } from '../theme';
 
@@ -30,6 +30,7 @@ export default function FavoritesScreen({ navigation }: Props) {
   const { showToast } = useToast();
   const [favorites, setFavorites] = useState<number[]>([]);
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [trailers, setTrailers] = useState<Trailer[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -38,7 +39,11 @@ export default function FavoritesScreen({ navigation }: Props) {
       setLoading(true);
     }
     try {
-      const [authRes, moviesRes] = await Promise.all([checkAuth(), getMovies()]);
+      const [authRes, moviesRes, trailersRes] = await Promise.all([
+        checkAuth(),
+        getMovies(),
+        getTrailers()
+      ]);
       
       if (authRes.ok && authRes.data) {
         setFavorites(Array.isArray(authRes.data.favorites) ? authRes.data.favorites : []);
@@ -48,6 +53,10 @@ export default function FavoritesScreen({ navigation }: Props) {
       
       if (moviesRes.ok && Array.isArray(moviesRes.data)) {
         setMovies(moviesRes.data as Movie[]);
+      }
+      
+      if (trailersRes.ok && Array.isArray(trailersRes.data)) {
+        setTrailers(trailersRes.data as Trailer[]);
       }
     } catch {
       // Silent fail on network error - keep existing data
@@ -69,6 +78,8 @@ export default function FavoritesScreen({ navigation }: Props) {
   }, []);
 
   const favoriteMovies = useMemo(() => movies.filter((m) => favorites.includes(m.id)), [movies, favorites]);
+
+  const getTrailerForMovie = (movieId: number) => trailers.find((t) => t.movie_id === movieId)?.url;
 
   if (loading && favoriteMovies.length === 0) {
     return (
@@ -134,10 +145,16 @@ export default function FavoritesScreen({ navigation }: Props) {
             </Text>
           </View>
         }
-        renderItem={({ item }) => (
+        renderItem={({ item }) => {
+          const trailerUrl = getTrailerForMovie(item.id);
+          return (
           <TouchableOpacity
             style={styles.card}
-            onPress={() => navigation.navigate('MovieDetail', { movie: item, isFavorited: true })}
+            onPress={() => navigation.navigate('MovieDetail', { 
+              movie: item, 
+              isFavorited: true,
+              trailerUrl
+            })}
             activeOpacity={0.9}
           >
             <View style={styles.cardImageContainer}>
@@ -170,7 +187,8 @@ export default function FavoritesScreen({ navigation }: Props) {
               <Text style={styles.meta}>{item.genre}</Text>
             </View>
           </TouchableOpacity>
-        )}
+          );
+        }}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
