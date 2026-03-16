@@ -80,9 +80,6 @@ export default function ProfileScreen({ navigation }: Props) {
           <View style={styles.header}>
           <View style={styles.headerTop}>
             <View style={styles.headerLogoWrapper}>
-              {/* Ilagay ang actual na logo image mo dito.
-                  1. Mag-save ng file, halimbawa: mobile/assets/logo.png
-                  2. Palitan ang path sa require() kung iba ang location. */}
               <Image
                 source={require('../../logo.png')}
                 style={styles.headerLogoImage}

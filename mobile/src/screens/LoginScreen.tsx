@@ -76,11 +76,8 @@ export default function LoginScreen({ navigation }: Props) {
                   end={{ x: 1, y: 1 }}
                   style={styles.logoGradient}
                 >
-                  {/* Ilagay ang actual na logo image mo dito.
-                      1. Mag-save ng file, halimbawa: mobile/assets/logo.png
-                      2. Palitan ang path sa require() kung iba ang location. */}
                   <Image
-                    source={require('../../assets/logo.png')}
+                    source={require('../../logo.png')}
                     style={styles.logoImage}
                     resizeMode="contain"
                   />
