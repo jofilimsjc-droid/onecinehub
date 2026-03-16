@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Text,
   TextInput,
@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   View,
   ScrollView,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -75,7 +76,14 @@ export default function LoginScreen({ navigation }: Props) {
                   end={{ x: 1, y: 1 }}
                   style={styles.logoGradient}
                 >
-                  <MaterialIcons name="movie" size={40} color="#fff" />
+                  {/* Ilagay ang actual na logo image mo dito.
+                      1. Mag-save ng file, halimbawa: mobile/assets/logo.png
+                      2. Palitan ang path sa require() kung iba ang location. */}
+                  <Image
+                    source={require('../../assets/logo.png')}
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                  />
                 </LinearGradient>
               </View>
               <Text style={styles.logo}>ONECINEHUB</Text>
@@ -212,6 +220,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     ...SHADOWS.glow,
+  },
+  logoImage: {
+    width: 60,
+    height: 60,
   },
   logoIcon: {
     fontSize: 36,

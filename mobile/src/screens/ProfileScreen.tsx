@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -77,11 +77,21 @@ export default function ProfileScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.header}>
+          <View style={styles.header}>
           <View style={styles.headerTop}>
-            <View>
-              <Text style={styles.logo}>ONECINEHUB</Text>
-              <Text style={styles.tagline}>Your Profile</Text>
+            <View style={styles.headerLogoWrapper}>
+              {/* Ilagay ang actual na logo image mo dito.
+                  1. Mag-save ng file, halimbawa: mobile/assets/logo.png
+                  2. Palitan ang path sa require() kung iba ang location. */}
+              <Image
+                source={require('../../logo.png')}
+                style={styles.headerLogoImage}
+                resizeMode="contain"
+              />
+              <View>
+                <Text style={styles.logo}>ONECINEHUB</Text>
+                <Text style={styles.tagline}>Your Profile</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -178,6 +188,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: SIZES.tabBarHeight + SPACING.xl,
+    paddingHorizontal: SPACING.lg,
   },
   header: { 
     padding: SPACING.lg, 
@@ -187,6 +198,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'flex-start' 
+  },
+  headerLogoWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+  },
+  headerLogoImage: {
+    width: 36,
+    height: 36,
   },
   logo: { 
     fontSize: FONTS.xxl, 
@@ -200,11 +220,13 @@ const styles = StyleSheet.create({
   },
   profileCard: { 
     backgroundColor: COLORS.surface, 
-    marginHorizontal: SPACING.lg, 
     marginBottom: SPACING.lg, 
     borderRadius: RADIUS.xl, 
     padding: SPACING.xl, 
     overflow: 'hidden',
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
     ...SHADOWS.medium,
   },
   profileHeader: {
@@ -289,8 +311,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
   menuContainer: { 
-    paddingHorizontal: SPACING.lg, 
-    marginBottom: SPACING.lg 
+    marginBottom: SPACING.lg,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
   },
   sectionTitle: { 
     fontSize: FONTS.sm, 
@@ -336,12 +360,14 @@ const styles = StyleSheet.create({
     fontWeight: '300' 
   },
   logoutBtn: { 
-    marginHorizontal: SPACING.lg, 
     marginTop: SPACING.sm, 
     borderRadius: RADIUS.lg,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: COLORS.error + '30',
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
   },
   logoutGradient: {
     flexDirection: 'row',
