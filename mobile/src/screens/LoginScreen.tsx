@@ -77,7 +77,7 @@ export default function LoginScreen({ navigation }: Props) {
                   style={styles.logoGradient}
                 >
                   <Image
-                    source={require('../../assets/logo.png')}
+                    source={require('../assets/logo.png')}
                     style={styles.logoImage}
                     resizeMode="contain"
                   />
@@ -140,7 +140,7 @@ export default function LoginScreen({ navigation }: Props) {
 
             <TouchableOpacity 
               style={styles.forgotPassword}
-              onPress={() => showToast('Password reset not available', 'info')}
+              onPress={() => navigation.navigate('ForgotPassword')}
             >
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>

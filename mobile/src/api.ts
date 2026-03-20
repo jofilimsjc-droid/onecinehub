@@ -89,6 +89,45 @@ export const authApi = {
     await AsyncStorage.removeItem('authToken');
     await AsyncStorage.removeItem('user');
   },
+
+  requestPasswordReset: async (email: string) => {
+    try {
+      const res = await fetch(`${MOBILE_API_URL}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'request_password_reset', email }),
+      });
+      const data = await res.json();
+      return data;
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Network error. Please check your connection.' };
+    }
+  },
+
+  resetPasswordWithOtp: async (
+    email: string,
+    otp: string,
+    newPassword: string,
+    confirmPassword: string,
+  ) => {
+    try {
+      const res = await fetch(`${MOBILE_API_URL}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'reset_password_with_otp',
+          email,
+          otp,
+          new_password: newPassword,
+          confirm_password: confirmPassword,
+        }),
+      });
+      const data = await res.json();
+      return data;
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Network error. Please check your connection.' };
+    }
+  },
 };
 
 export const getMovies = () => api<any[]>('?action=get_movies');

@@ -12,6 +12,19 @@ if (!defined('SITE_URL')) {
 
 define('SESSION_TIMEOUT', 3600); // 1 hour
 
+// Password reset (OTP) + SMTP email settings
+// Note: Gmail does not allow sending "from" the user's own inbox account programmatically.
+// This sends the OTP to the user's registered email address, using ONECINEHUB's SMTP account.
+define('OTP_EXPIRY_MINUTES', (int)(getenv('OTP_EXPIRY_MINUTES') ?: 10));
+
+define('SMTP_HOST', getenv('SMTP_HOST') ?: 'smtp.gmail.com');
+define('SMTP_PORT', (int)(getenv('SMTP_PORT') ?: 587));
+define('SMTP_USERNAME', getenv('SMTP_USERNAME') ?: 'johmmarklim18@gmail.com');
+define('SMTP_PASSWORD', getenv('SMTP_PASSWORD') ?: 'elca whpo udzd ojoq'); // Use Gmail App Password
+define('SMTP_FROM_EMAIL', getenv('SMTP_FROM_EMAIL') ?: 'johmmarklim18@gmail.com');
+define('SMTP_FROM_NAME', getenv('SMTP_FROM_NAME') ?: 'ONECINEHUB');
+define('SMTP_USE_STARTTLS', true);
+
 // Start session
 session_start();
 

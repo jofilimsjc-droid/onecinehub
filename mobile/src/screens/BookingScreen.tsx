@@ -564,7 +564,7 @@ export default function BookingScreen({ route, navigation }: Props) {
                 <View style={styles.paymentInputContainer}>
                   {selected.paymentMethod === 'GCash' ? (
                     <View style={styles.gcashQrBox}>
-                      <Image source={require('../../assets/gcash-qr.png')} style={styles.gcashQr} />
+                      <Image source={require('../assets/gcash-qr.png')} style={styles.gcashQr} />
                       <Text style={styles.gcashQrHint}>Scan this QR in GCash to pay.</Text>
                     </View>
                   ) : null}

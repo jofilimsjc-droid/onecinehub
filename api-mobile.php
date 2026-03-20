@@ -129,6 +129,15 @@ try {
         case 'change_password':
             handleChangePassword($input, $currentUser);
             break;
+
+        // Password reset (Forgot Password) actions
+        case 'request_password_reset':
+            handleRequestPasswordReset($input);
+            break;
+
+        case 'reset_password_with_otp':
+            handleResetPasswordWithOtp($input);
+            break;
             
         default:
             jsonResponse(['success' => false, 'message' => 'Invalid action: ' . $action], 400);
@@ -725,6 +734,264 @@ function handleChangePassword($input, $currentUser) {
     $stmt->execute([$newPassword, $userId]);
     
     jsonResponse(['success' => true, 'message' => 'Password updated']);
+}
+
+function ensurePasswordResetTables() {
+    global $pdo;
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS password_reset_otps (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            otp_hash VARCHAR(64) NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            used_at TIMESTAMP NULL DEFAULT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_reset_user_valid (user_id, expires_at),
+            INDEX idx_reset_hash (user_id, otp_hash)
+        )
+    ");
+}
+
+function sendOtpEmail($toEmail, $otp) {
+    // SMTP config is defined in config.php
+    if (empty(SMTP_USERNAME) || empty(SMTP_PASSWORD) || empty(SMTP_FROM_EMAIL)) {
+        throw new Exception('SMTP is not configured. Please set SMTP_USERNAME, SMTP_PASSWORD, and SMTP_FROM_EMAIL in config.php or environment variables.');
+    }
+
+    $subject = 'ONECINEHUB Password Reset OTP';
+    $body =
+        "Hello!\n\n" .
+        "Your ONECINEHUB OTP is: {$otp}\n\n" .
+        "This OTP will expire in " . OTP_EXPIRY_MINUTES . " minutes.\n\n" .
+        "If you did not request a password reset, you can ignore this email.\n";
+
+    smtpSendMail(
+        SMTP_HOST,
+        SMTP_PORT,
+        SMTP_USERNAME,
+        SMTP_PASSWORD,
+        SMTP_FROM_EMAIL,
+        SMTP_FROM_NAME,
+        $toEmail,
+        $subject,
+        $body
+    );
+}
+
+function smtpReadResponse($socket) {
+    $line = fgets($socket, 515);
+    if ($line === false) {
+        throw new Exception('SMTP: Failed to read response from server.');
+    }
+
+    $code = (int)substr($line, 0, 3);
+    $response = $line;
+
+    // Handle multi-line responses (e.g. 250-... then 250 ...)
+    while (isset($line[3]) && $line[3] === '-') {
+        $line = fgets($socket, 515);
+        if ($line === false) break;
+        $response .= $line;
+    }
+
+    return ['code' => $code, 'message' => $response];
+}
+
+function smtpSendCommand($socket, $command, $expectedCodes = []) {
+    fwrite($socket, $command);
+    $res = smtpReadResponse($socket);
+    if (!empty($expectedCodes) && !in_array($res['code'], $expectedCodes, true)) {
+        throw new Exception('SMTP: Unexpected response ' . $res['code'] . ' for command: ' . trim($command) . '. Server replied: ' . $res['message']);
+    }
+    return $res;
+}
+
+function smtpSendMail($host, $port, $username, $password, $fromEmail, $fromName, $toEmail, $subject, $body) {
+    $socket = stream_socket_client(
+        "tcp://{$host}:{$port}",
+        $errno,
+        $errstr,
+        30,
+        STREAM_CLIENT_CONNECT
+    );
+    if (!$socket) {
+        throw new Exception('SMTP: Could not connect: ' . ($errstr ?: $errno));
+    }
+
+    // Server greeting
+    $greeting = smtpReadResponse($socket);
+    if (!in_array($greeting['code'], [220], true)) {
+        throw new Exception('SMTP: Unexpected greeting: ' . $greeting['code']);
+    }
+
+    smtpSendCommand($socket, "EHLO onecinehub\r\n", [250]);
+
+    if (defined('SMTP_USE_STARTTLS') && SMTP_USE_STARTTLS) {
+        // STARTTLS negotiation
+        // Some servers require EHLO again after TLS
+        smtpSendCommand($socket, "STARTTLS\r\n", [220]);
+        if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+            throw new Exception('SMTP: Failed to enable TLS encryption.');
+        }
+        smtpSendCommand($socket, "EHLO onecinehub\r\n", [250]);
+    }
+
+    // AUTH LOGIN
+    smtpSendCommand($socket, "AUTH LOGIN\r\n", [334]);
+    smtpSendCommand($socket, base64_encode($username) . "\r\n", [334]);
+    smtpSendCommand($socket, base64_encode($password) . "\r\n", [235]);
+
+    smtpSendCommand($socket, "MAIL FROM:<{$fromEmail}>\r\n", [250]);
+    // Gmail might reply with 250 or 251 for RCPT TO
+    smtpSendCommand($socket, "RCPT TO:<{$toEmail}>\r\n", [250, 251]);
+    smtpSendCommand($socket, "DATA\r\n", [354]);
+
+    $headers =
+        "From: \"{$fromName}\" <{$fromEmail}>\r\n" .
+        "To: <{$toEmail}>\r\n" .
+        "Subject: {$subject}\r\n" .
+        "MIME-Version: 1.0\r\n" .
+        "Content-Type: text/plain; charset=UTF-8\r\n";
+
+    $message = $headers . "\r\n" . $body . "\r\n.\r\n";
+    smtpSendCommand($socket, $message, [250]);
+
+    // Some servers may reply with different closing codes; we don't want to fail the whole email
+    // if QUIT response differs slightly.
+    smtpSendCommand($socket, "QUIT\r\n");
+    fclose($socket);
+}
+
+function handleRequestPasswordReset($input) {
+    global $pdo;
+
+    // Normalize email for consistent matching/storing
+    $email = strtolower(trim((string)($input['email'] ?? '')));
+
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        jsonResponse(['success' => false, 'message' => 'Please enter a valid email address.'], 400);
+    }
+
+    // Find user by email (normalize via LOWER to avoid case-sensitive collation issues)
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE LOWER(email) = ?");
+    $stmt->execute([$email]);
+    $userId = $stmt->fetchColumn();
+
+    // Avoid user enumeration: always respond with success,
+    // but only generate/send OTP if user exists.
+    if (!$userId) {
+        jsonResponse([
+            'success' => true,
+            'message' => 'If the email is registered, you will receive an OTP shortly.'
+        ]);
+    }
+
+    ensurePasswordResetTables();
+
+    // Cleanup only expired OTPs (don't delete unused ones right away).
+    // This prevents "Invalid/expired OTP" if the user requested multiple times
+    // but ends up entering an OTP email that arrived a moment earlier.
+    $pdo->prepare("DELETE FROM password_reset_otps WHERE user_id = ? AND expires_at <= NOW()")
+        ->execute([$userId]);
+
+    $otp = (string)random_int(100000, 999999);
+    $otpHash = hash('sha256', $otp);
+
+    $expiresAt = date('Y-m-d H:i:s', strtotime('+' . OTP_EXPIRY_MINUTES . ' minutes'));
+
+    $stmt = $pdo->prepare("
+        INSERT INTO password_reset_otps (user_id, email, otp_hash, expires_at)
+        VALUES (?, ?, ?, ?)
+    ");
+    $stmt->execute([$userId, $email, $otpHash, $expiresAt]);
+
+    try {
+        sendOtpEmail($email, $otp);
+    } catch (Exception $e) {
+        // Cleanup the stored OTP since we couldn't send it
+        $pdo->prepare("DELETE FROM password_reset_otps WHERE user_id = ? AND expires_at > NOW()")
+            ->execute([$userId]);
+
+        jsonResponse([
+            'success' => false,
+            'message' => 'Unable to send OTP email. Please configure SMTP settings. Error: ' . $e->getMessage()
+        ], 500);
+    }
+
+    jsonResponse([
+        'success' => true,
+        'message' => 'OTP sent to your email address.'
+    ]);
+}
+
+function handleResetPasswordWithOtp($input) {
+    global $pdo;
+
+    // Normalize email for consistent matching/storing
+    $email = strtolower(trim((string)($input['email'] ?? '')));
+    $otp = trim((string)($input['otp'] ?? ''));
+    $newPassword = (string)($input['new_password'] ?? '');
+    $confirmPassword = (string)($input['confirm_password'] ?? '');
+
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        jsonResponse(['success' => false, 'message' => 'Invalid email address.'], 400);
+    }
+    if (empty($otp) || !preg_match('/^\d{6}$/', $otp)) {
+        jsonResponse(['success' => false, 'message' => 'Invalid OTP format.'], 400);
+    }
+    if ($newPassword === '' || $confirmPassword === '') {
+        jsonResponse(['success' => false, 'message' => 'Please fill in all password fields.'], 400);
+    }
+    if (strlen($newPassword) < 8) {
+        jsonResponse(['success' => false, 'message' => 'Password must be at least 8 characters.'], 400);
+    }
+    if ($newPassword !== $confirmPassword) {
+        jsonResponse(['success' => false, 'message' => 'Passwords do not match.'], 400);
+    }
+
+    ensurePasswordResetTables();
+
+    $otpHash = hash('sha256', $otp);
+    // Verify OTP using the stored OTP row (email + otp_hash).
+    // This avoids any mismatch issues that can happen when looking up user_id by email.
+    $stmt = $pdo->prepare("
+        SELECT id, user_id, expires_at
+        FROM password_reset_otps
+        WHERE LOWER(email) = ?
+          AND otp_hash = ?
+          AND used_at IS NULL
+        ORDER BY created_at DESC
+        LIMIT 1
+    ");
+    $stmt->execute([$email, $otpHash]);
+    $otpRow = $stmt->fetch();
+
+    if (!$otpRow) {
+        jsonResponse(['success' => false, 'message' => 'Invalid OTP.'], 400);
+    }
+
+    $expiresAtTs = strtotime((string)$otpRow['expires_at']);
+    if (!$expiresAtTs || $expiresAtTs < time()) {
+        jsonResponse(['success' => false, 'message' => 'Expired OTP.'], 400);
+    }
+
+    $userId = (int)$otpRow['user_id'];
+    $pdo->prepare("UPDATE users SET password = ? WHERE id = ?")->execute([$newPassword, $userId]);
+    // Mark the used OTP as consumed (and any other still-unused OTPs for the same user).
+    $pdo->prepare("UPDATE password_reset_otps SET used_at = NOW() WHERE id = ?")->execute([$otpRow['id']]);
+    $pdo->prepare("UPDATE password_reset_otps SET used_at = NOW() WHERE user_id = ? AND used_at IS NULL AND id <> ?")
+        ->execute([$userId, $otpRow['id']]);
+
+    // Remove stale/used OTP rows for this user
+    $pdo->prepare("DELETE FROM password_reset_otps WHERE user_id = ? AND used_at IS NOT NULL")
+        ->execute([$userId]);
+
+    jsonResponse([
+        'success' => true,
+        'message' => 'Password updated successfully.'
+    ]);
 }
 
 ?>

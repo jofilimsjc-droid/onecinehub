@@ -1,4 +1,4 @@
-﻿export type RootStackParamList = {
+export type RootStackParamList = {
   Main: undefined;
   Auth: undefined;
   MainTabs: undefined;
@@ -11,6 +11,8 @@
   Settings: undefined;
   Login: undefined;
   Register: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: { email: string };
 };
 
 export type MainTabParamList = {
