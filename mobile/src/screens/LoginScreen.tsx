@@ -211,16 +211,16 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   logoGradient: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
     justifyContent: 'center',
     alignItems: 'center',
     ...SHADOWS.glow,
   },
   logoImage: {
-    width: 60,
-    height: 60,
+    width: 76,
+    height: 76,
   },
   logoIcon: {
     fontSize: 36,

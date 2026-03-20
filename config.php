@@ -3,13 +3,11 @@
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('DB_NAME', 'onecinehub');
+define('DB_NAME', 'onecinehub_db');
 
 // Application settings
 if (!defined('SITE_URL')) {
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    define('SITE_URL', $scheme . '://' . $host . '/onecinehub');
+    define('SITE_URL', 'http://192.168.1.8/onecinehub');
 }
 
 define('SESSION_TIMEOUT', 3600); // 1 hour
@@ -23,8 +21,6 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
-    // Lightweight schema sync for critical columns used by the app.
-    // This keeps older DB dumps working without manual ALTERs.
     ensureSchema($pdo);
 } catch (PDOException $e) {
     die("Database connection failed: " . $e->getMessage());
@@ -69,7 +65,6 @@ function jsonResponse($data, $status = 200) {
 }
 
 function ensureSchema(PDO $pdo) {
-    // users.phone (used by mobile/web settings screens)
     try {
         $stmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'phone'");
         $col = $stmt->fetch();
@@ -77,7 +72,7 @@ function ensureSchema(PDO $pdo) {
             $pdo->exec("ALTER TABLE users ADD COLUMN phone VARCHAR(30) NULL DEFAULT NULL");
         }
     } catch (Throwable $e) {
-        // If this fails (permissions, missing table), don't break the app startup.
+        // ignore errors
     }
 }
 

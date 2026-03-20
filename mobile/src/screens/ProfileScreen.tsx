@@ -202,8 +202,8 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
   },
   headerLogoImage: {
-    width: 36,
-    height: 36,
+    width: 48,
+    height: 48,
   },
   logo: { 
     fontSize: FONTS.xxl, 

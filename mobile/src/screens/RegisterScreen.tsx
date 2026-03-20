@@ -320,16 +320,16 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   logoGradient: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
     ...SHADOWS.glow,
   },
   logoImage: {
-    width: 54,
-    height: 54,
+    width: 70,
+    height: 70,
   },
   logoIcon: {
     fontSize: 36,
