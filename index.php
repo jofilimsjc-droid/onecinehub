@@ -843,6 +843,9 @@ if ($registrationError) {
                         </button>
                     </div>
                 </div>
+                <div class="mb-4 text-right">
+                    <a href="#" id="showForgotPassword" class="text-red-500 font-bold hover:underline" onclick="openForgotPasswordModal(); return false;">Forgot Password?</a>
+                </div>
                 <button type="submit" class="action-btn w-full py-3 text-base">Sign In</button>
             </form>
             <p class="text-center text-gray-400 mt-6">New to ONECINEHUB? <a href="#" id="showRegisterFromLogin" class="text-red-500 font-bold hover:underline">Create an account</a></p>
@@ -938,6 +941,121 @@ if ($registrationError) {
             </form>
             
             <p class="text-center text-gray-400 mt-6">Already have an account? <a href="#" id="showLoginFromRegister" class="text-red-500 font-bold hover:underline">Sign in here</a></p>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal" style="display: none;">
+        <div class="modal-content register-container">
+            <button class="close-button" id="closeForgotPassword" onclick="closeForgotPasswordModal()">&times;</button>
+            <h2 class="text-3xl font-black mb-2 text-center gradient-text">Forgot Password</h2>
+            <p class="text-center text-gray-400 mb-6">Enter your Gmail to receive a 6-digit OTP</p>
+
+            <form id="forgot-password-form" onsubmit="return requestPasswordOtp(event)">
+                <div class="mb-5">
+                    <div class="label-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <span>Email</span>
+                    </div>
+                    <input
+                        id="forgot-email"
+                        class="w-full rounded-lg py-3 px-4"
+                        type="email"
+                        placeholder="example@gmail.com"
+                        required
+                        autocomplete="email"
+                    >
+                    <p class="email-hint">Only Gmail addresses are allowed</p>
+                </div>
+
+                <button id="forgot-send-otp-btn" type="submit" class="action-btn w-full py-3 text-base">
+                    Send OTP
+                </button>
+
+                <p class="text-center text-gray-400 mt-6">
+                    Remembered your password?
+                    <a href="#" id="showLoginFromForgot" class="text-red-500 font-bold hover:underline" onclick="openLoginFromForgot(); return false;">Sign In</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div id="resetPasswordModal" class="modal" style="display: none;">
+        <div class="modal-content register-container">
+            <button class="close-button" id="closeResetPassword" onclick="closeResetPasswordModal()">&times;</button>
+            <h2 class="text-3xl font-black mb-2 text-center gradient-text">Reset Password</h2>
+            <p class="text-center text-gray-400 mb-6">We sent an OTP to: <span id="reset-email-display" class="text-white font-bold"></span></p>
+
+            <form id="reset-password-form" onsubmit="return resetPasswordWithOtpFromWebsite(event)">
+                <div class="mb-5">
+                    <div class="label-with-icon">
+                        <i class="fas fa-fingerprint"></i>
+                        <span>OTP</span>
+                    </div>
+                    <input
+                        id="reset-otp"
+                        class="w-full rounded-lg py-3 px-4"
+                        type="text"
+                        inputmode="numeric"
+                        placeholder="6-digit OTP"
+                        required
+                        autocomplete="one-time-code"
+                        oninput="this.value = this.value.replace(/\\D/g, '').slice(0, 6);"
+                    >
+                </div>
+
+                <div class="mb-5">
+                    <div class="label-with-icon">
+                        <i class="fas fa-key"></i>
+                        <span>New Password</span>
+                    </div>
+                    <div class="password-container">
+                        <input
+                            id="reset-new-password"
+                            class="w-full rounded-lg py-3 px-4"
+                            type="password"
+                            placeholder="Create a new password"
+                            required
+                            minlength="8"
+                            autocomplete="new-password"
+                        >
+                        <button type="button" class="password-toggle" onclick="togglePassword('reset-new-password', this)" aria-label="Show or hide new password">
+                            <i class="fa-regular fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <div class="label-with-icon">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Confirm New Password</span>
+                    </div>
+                    <div class="password-container">
+                        <input
+                            id="reset-confirm-password"
+                            class="w-full rounded-lg py-3 px-4"
+                            type="password"
+                            placeholder="Confirm your new password"
+                            required
+                            minlength="8"
+                            autocomplete="new-password"
+                        >
+                        <button type="button" class="password-toggle" onclick="togglePassword('reset-confirm-password', this)" aria-label="Show or hide confirm password">
+                            <i class="fa-regular fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button id="reset-update-password-btn" type="submit" class="action-btn w-full py-3 text-base">
+                    Update Password
+                </button>
+
+                <p class="text-center text-gray-400 mt-6">
+                    Wrong OTP?
+                    <a href="#" id="backToForgotFromReset" class="text-red-500 font-bold hover:underline" onclick="openForgotFromReset(); return false;">Request OTP again</a>
+                </p>
+            </form>
         </div>
     </div>
 
@@ -1491,9 +1609,172 @@ if ($registrationError) {
             document.getElementById('trailerModal').style.display = 'block';
         }
 
+        // ===== Forgot Password (Website) - OTP Request + Reset =====
+        let websiteForgotEmail = '';
+
+        function openForgotPasswordModal() {
+            websiteForgotEmail = '';
+            document.getElementById('forgot-email').value = '';
+            document.getElementById('forgotPasswordModal').style.display = 'block';
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'none';
+        }
+
+        function openLoginFromForgot() {
+            closeForgotPasswordModal();
+            document.getElementById('loginModal').style.display = 'block';
+        }
+
+        function openForgotFromReset() {
+            closeResetPasswordModal();
+            document.getElementById('forgotPasswordModal').style.display = 'block';
+        }
+
+        function openResetPasswordModal(email) {
+            websiteForgotEmail = email;
+            document.getElementById('reset-email-display').textContent = email;
+            document.getElementById('reset-otp').value = '';
+            document.getElementById('reset-new-password').value = '';
+            document.getElementById('reset-confirm-password').value = '';
+            document.getElementById('forgotPasswordModal').style.display = 'none';
+            document.getElementById('resetPasswordModal').style.display = 'block';
+        }
+
+        function closeResetPasswordModal() {
+            document.getElementById('resetPasswordModal').style.display = 'none';
+        }
+
+        async function requestPasswordOtp(event) {
+            event.preventDefault();
+
+            const btn = document.getElementById('forgot-send-otp-btn');
+            const emailInput = document.getElementById('forgot-email');
+            const email = (emailInput.value || '').trim();
+
+            if (!email) {
+                showNotification('<i class="fas fa-exclamation-circle"></i> Email Required', 'Please enter your email.', 'error', 5000);
+                return false;
+            }
+            if (!email.toLowerCase().endsWith('@gmail.com')) {
+                showNotification('<i class="fas fa-exclamation-circle"></i> Invalid Email', 'Only Gmail addresses are allowed.', 'error', 5000);
+                return false;
+            }
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = 'Sending OTP...';
+
+                const res = await fetch('api-mobile.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'request_password_reset',
+                        email: email,
+                    }),
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok || data.success !== true) {
+                    showNotification('<i class="fas fa-exclamation-circle"></i> OTP Request Failed', data.message || 'Please try again.', 'error', 7000);
+                    return false;
+                }
+
+                showNotification('<i class="fas fa-check-circle"></i> OTP Sent', data.message || 'Check your email for the OTP.', 'success', 7000);
+                openResetPasswordModal(email);
+                return false;
+            } catch (error) {
+                console.error('Request OTP error:', error);
+                showNotification('<i class="fas fa-exclamation-circle"></i> Network Error', 'Unable to connect. Please try again.', 'error', 7000);
+                return false;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Send OTP';
+            }
+        }
+
+        async function resetPasswordWithOtpFromWebsite(event) {
+            event.preventDefault();
+
+            const btn = document.getElementById('reset-update-password-btn');
+            const otp = (document.getElementById('reset-otp').value || '').trim();
+            const newPassword = (document.getElementById('reset-new-password').value || '').trim();
+            const confirmPassword = (document.getElementById('reset-confirm-password').value || '').trim();
+
+            const email = websiteForgotEmail || (document.getElementById('reset-email-display').textContent || '').trim();
+
+            if (!email) {
+                showNotification('<i class="fas fa-exclamation-circle"></i> Missing Email', 'Please request OTP again.', 'error', 7000);
+                return false;
+            }
+
+            if (!otp || !/^\\d{6}$/.test(otp)) {
+                showNotification('<i class="fas fa-exclamation-circle"></i> Invalid OTP', 'Please enter the 6-digit OTP.', 'error', 7000);
+                return false;
+            }
+            if (!newPassword || !confirmPassword) {
+                showNotification('<i class="fas fa-exclamation-circle"></i> Missing Password', 'Please fill in all password fields.', 'error', 7000);
+                return false;
+            }
+            if (newPassword.length < 8) {
+                showNotification('<i class="fas fa-exclamation-circle"></i> Weak Password', 'Password must be at least 8 characters.', 'error', 7000);
+                return false;
+            }
+            if (newPassword !== confirmPassword) {
+                showNotification('<i class="fas fa-exclamation-circle"></i> Password Mismatch', 'New password and confirm password do not match.', 'error', 7000);
+                return false;
+            }
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = 'Updating...';
+
+                const res = await fetch('api-mobile.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'reset_password_with_otp',
+                        email,
+                        otp,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword,
+                    }),
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok || data.success !== true) {
+                    showNotification('<i class="fas fa-exclamation-circle"></i> Reset Failed', data.message || 'OTP invalid or expired. Please try again.', 'error', 8000);
+                    return false;
+                }
+
+                showNotification('<i class="fas fa-check-circle"></i> Password Updated', data.message || 'You can now sign in with your new password.', 'success', 8000);
+                closeResetPasswordModal();
+                document.getElementById('loginModal').style.display = 'block';
+
+                // Prefill login email if we have it (helps UX).
+                const loginEmailInput = document.querySelector('#loginModal input[name="email"]');
+                if (loginEmailInput && email) {
+                    loginEmailInput.value = email;
+                }
+
+                return false;
+            } catch (error) {
+                console.error('Reset password error:', error);
+                showNotification('<i class="fas fa-exclamation-circle"></i> Network Error', 'Unable to connect. Please try again.', 'error', 8000);
+                return false;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Update Password';
+            }
+        }
+
         // Close modals when clicking outside
         window.onclick = (e) => {
-            const modals = ['loginModal', 'registerModal', 'trailerModal', 'termsModal'];
+            const modals = ['loginModal', 'registerModal', 'trailerModal', 'termsModal', 'forgotPasswordModal', 'resetPasswordModal'];
             modals.forEach((id) => {
                 const modal = document.getElementById(id);
                 if (e.target == modal) {
